@@ -1,0 +1,156 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import { Spinner } from './components/atoms';
+
+import { PublicLayout } from './components/templates';
+import { PrivateLayout } from './components/templates';
+
+import { Home } from './pages/public/Home';
+import { ChantsLibrary } from './pages/public/ChantsLibrary';
+import { Calendar } from './pages/public/Calendar';
+import { History } from './pages/public/History';
+import { Login } from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
+import { Dashboard } from './pages/private/Dashboard';
+import { Members } from './pages/private/Members';
+import { Voting } from './pages/private/Voting';
+import { Documents } from './pages/private/Documents';
+import { Forum } from './pages/private/Forum';
+import { MembershipCard } from './pages/private/MembershipCard';
+import { Contribute } from './pages/private/Contribute';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!user || user.role !== 'coordinator_admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+export const Router: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
+        <Route path="/chants" element={<PublicLayout><ChantsLibrary /></PublicLayout>} />
+        <Route path="/calendar" element={<PublicLayout><Calendar /></PublicLayout>} />
+        <Route path="/history" element={<PublicLayout><History /></PublicLayout>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <Dashboard />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/members"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <Members />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voting"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <Voting />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/documents"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <Documents />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forum"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <Forum />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/membership-card"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <MembershipCard />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contribute"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <Contribute />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <PrivateLayout>
+                <AdminDashboard />
+              </PrivateLayout>
+            </AdminRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
