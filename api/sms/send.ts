@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 import twilio from 'twilio';
-import { getUserFromBearer, isCoordinatorAdmin } from '../lib/auth';
-import { requireTwilioEnv } from '../lib/env';
-import { json } from '../lib/http';
-import { getJsonBody } from '../lib/parseBody';
+import { getUserFromBearer, isCoordinatorAdmin } from '../lib/auth.js';
+import { requireTwilioEnv } from '../lib/env.js';
+import { json } from '../lib/http.js';
+import { getJsonBody } from '../lib/parseBody.js';
 
 const bodySchema = z.object({
   to: z.string().min(8).max(20),

@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { User } from '@supabase/supabase-js';
-import { requireBaseEnv } from './env';
-import { getSupabaseAdmin } from './supabaseAdmin';
+import { requireBaseEnv } from './env.js';
+import { getSupabaseAdmin } from './supabaseAdmin.js';
 
 export async function getUserFromBearer(authorization: string | undefined): Promise<User | null> {
   if (!authorization?.toLowerCase().startsWith('bearer ')) {

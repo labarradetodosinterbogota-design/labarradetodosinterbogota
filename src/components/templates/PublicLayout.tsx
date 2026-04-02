@@ -11,7 +11,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-transparent">
       <header className="bg-dark-900 text-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">

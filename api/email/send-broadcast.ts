@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
-import { getUserFromBearer, isCoordinatorAdmin } from '../lib/auth';
-import { requireSmtpEnv } from '../lib/env';
-import { json } from '../lib/http';
-import { sendMarketingEmail } from '../lib/mailer';
-import { getJsonBody } from '../lib/parseBody';
+import { getUserFromBearer, isCoordinatorAdmin } from '../lib/auth.js';
+import { requireSmtpEnv } from '../lib/env.js';
+import { json } from '../lib/http.js';
+import { sendMarketingEmail } from '../lib/mailer.js';
+import { getJsonBody } from '../lib/parseBody.js';
 
 const MAX_RECIPIENTS = 80;
 

@@ -2,17 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  -webkit-font-smoothing: antialiased;
+html,
+body {
   -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer base {
-  body {
-    @apply bg-white text-dark-900;
+  :root {
+    /* Aligned with theme.colors.dark.900 — single source avoids duplicated literals (Sonar) */
+    --color-surface-app: #24221f;
+    --color-text-primary: #24221f;
+    --app-hero-overlay: linear-gradient(
+      to bottom,
+      rgba(36, 34, 31, 0.5),
+      rgba(36, 34, 31, 0.68)
+    );
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  body {
+    @apply text-dark-900;
+    background-color: var(--color-surface-app);
+  }
+
+  .app-root {
+    background-attachment: fixed;
+    background-color: var(--color-surface-app);
+    background-image: var(--app-hero-overlay), url('/app-bg.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-bold;
   }
 
@@ -28,10 +56,11 @@
     @apply text-xl;
   }
 
+  /* WebKit autofill applies UA styles; overriding requires the prefixed shadow hack. */
   input::-webkit-autofill,
   input::-webkit-autofill:hover,
   input::-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px white inset !important;
-    -webkit-text-fill-color: #24221f !important;
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important; /* NOSONAR: required to override Chrome/Safari autofill background */
+    -webkit-text-fill-color: var(--color-text-primary) !important; /* NOSONAR */
   }
 }

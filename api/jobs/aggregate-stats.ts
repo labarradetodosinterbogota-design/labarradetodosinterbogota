@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getUserFromBearer, isCoordinatorAdmin } from '../lib/auth';
-import { getCronSecret } from '../lib/env';
-import { json } from '../lib/http';
-import { getSupabaseAdmin } from '../lib/supabaseAdmin';
+import { getUserFromBearer, isCoordinatorAdmin } from '../lib/auth.js';
+import { getCronSecret } from '../lib/env.js';
+import { json } from '../lib/http.js';
+import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 
 /**
  * Agregaciones pesadas en servidor (no exponer lógica sensible al cliente).

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { requireSmtpEnv } from './env';
+import { requireSmtpEnv } from './env.js';
 
 export function createMailTransport() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = requireSmtpEnv();

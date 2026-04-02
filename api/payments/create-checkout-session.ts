@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
-import { getUserFromBearer } from '../lib/auth';
-import { json } from '../lib/http';
-import { getStripe, getDefaultCurrency } from '../lib/stripe';
-import { requireStripeEnv } from '../lib/env';
-import { getJsonBody } from '../lib/parseBody';
+import { getUserFromBearer } from '../lib/auth.js';
+import { json } from '../lib/http.js';
+import { getStripe, getDefaultCurrency } from '../lib/stripe.js';
+import { requireStripeEnv } from '../lib/env.js';
+import { getJsonBody } from '../lib/parseBody.js';
 
 const bodySchema = z.object({
   amountCop: z.number().int().min(3_000).max(200_000_000),

@@ -28,8 +28,8 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
   const isAdmin = user?.role === 'coordinator_admin';
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-50">
-      <header className="bg-white border-b border-dark-200 sticky top-0 z-40">
+    <div className="min-h-screen flex flex-col bg-transparent">
+      <header className="bg-white/95 backdrop-blur-sm border-b border-dark-200/80 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/dashboard" className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
             </button>
 
             <nav
-              className={`${menuOpen ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row gap-2 sm:gap-4 absolute sm:static top-16 left-0 right-0 bg-white sm:bg-transparent p-4 sm:p-0 border-b sm:border-0 border-dark-200`}
+              className={`${menuOpen ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row gap-2 sm:gap-4 absolute sm:static top-16 left-0 right-0 bg-white/98 backdrop-blur-sm sm:bg-transparent p-4 sm:p-0 border-b sm:border-0 border-dark-200`}
             >
               <Link
                 to="/dashboard"
@@ -123,7 +123,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
         {children}
       </main>
 
-      <footer className="bg-white border-t border-dark-200 mt-12">
+      <footer className="bg-white/95 backdrop-blur-sm border-t border-dark-200/80 mt-12">
         <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-dark-500">
           <p>&copy; {new Date().getFullYear()} Inter Bogotá Barra Popular. Todos los derechos reservados.</p>
         </div>

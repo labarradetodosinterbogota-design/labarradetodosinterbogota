@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import type Stripe from 'stripe';
-import { requireStripeEnv } from '../lib/env';
-import { getStripe } from '../lib/stripe';
-import { getSupabaseAdmin } from '../lib/supabaseAdmin';
-import { json } from '../lib/http';
+import { requireStripeEnv } from '../lib/env.js';
+import { getStripe } from '../lib/stripe.js';
+import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
+import { json } from '../lib/http.js';
 
 /** Si despliegas con Next.js, desactiva el parser del body aquí; en Vercel + `/api` puede aplicarse según runtime. */
 export const config = {
