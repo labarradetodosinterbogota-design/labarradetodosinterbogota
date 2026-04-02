@@ -26,13 +26,14 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
       .toUpperCase() || '?';
 
   const isAdmin = user?.role === 'coordinator_admin';
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
       <header className="bg-white/95 backdrop-blur-sm border-b border-dark-200/80 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/dashboard" className="flex items-center gap-2">
+            <Link to="/dashboard" className="flex items-center gap-2" onClick={closeMenu}>
               <BrandMark variant="onLight" />
               <span className="font-bold text-lg hidden sm:inline text-dark-900">Inter Bogotá</span>
             </Link>
@@ -53,12 +54,14 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               <Link
                 to="/dashboard"
                 className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
               >
                 <span>Inicio</span>
               </Link>
               <Link
                 to="/members"
                 className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
               >
                 <Users className="w-4 h-4" />
                 <span>Integrantes</span>
@@ -66,6 +69,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               <Link
                 to="/voting"
                 className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
               >
                 <Vote className="w-4 h-4" />
                 <span>Votaciones</span>
@@ -73,6 +77,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               <Link
                 to="/documents"
                 className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
               >
                 <FileText className="w-4 h-4" />
                 <span>Documentos</span>
@@ -80,6 +85,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               <Link
                 to="/forum"
                 className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>Foro</span>
@@ -88,6 +94,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
                 <Link
                   to="/admin"
                   className="flex items-center gap-2 text-primary-400 hover:text-primary-500 transition-colors font-medium"
+                  onClick={closeMenu}
                 >
                   <span>Administración</span>
                 </Link>

@@ -9,13 +9,14 @@ interface PublicLayoutProps {
 
 export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
       <header className="bg-dark-900 text-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
               <BrandMark variant="onDark" />
               <span className="font-bold text-lg hidden sm:inline">Inter Bogotá</span>
             </Link>
@@ -33,16 +34,32 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             <nav
               className={`${menuOpen ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row gap-2 sm:gap-4 absolute sm:static top-16 left-0 right-0 bg-dark-900 sm:bg-transparent p-4 sm:p-0`}
             >
-              <Link to="/" className="text-white hover:text-primary-400 transition-colors">
+              <Link
+                to="/"
+                className="text-white hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
+              >
                 Inicio
               </Link>
-              <Link to="/history" className="text-white hover:text-primary-400 transition-colors">
+              <Link
+                to="/history"
+                className="text-white hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
+              >
                 Historia
               </Link>
-              <Link to="/chants" className="text-white hover:text-primary-400 transition-colors">
+              <Link
+                to="/chants"
+                className="text-white hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
+              >
                 Cantos
               </Link>
-              <Link to="/calendar" className="text-white hover:text-primary-400 transition-colors">
+              <Link
+                to="/calendar"
+                className="text-white hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
+              >
                 Calendario
               </Link>
             </nav>
