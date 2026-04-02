@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import { Button } from '../atoms';
+import { Button, BrandMark } from '../atoms';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -16,9 +16,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-primary-400 flex items-center justify-center font-bold text-dark-900">
-                IB
-              </div>
+              <BrandMark variant="onDark" />
               <span className="font-bold text-lg hidden sm:inline">Inter Bogotá</span>
             </Link>
 

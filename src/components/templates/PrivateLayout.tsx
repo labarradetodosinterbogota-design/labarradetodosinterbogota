@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, Users, FileText, Vote, MessageCircle } from 'lucide-react';
-import { Button, Avatar } from '../atoms';
+import { Button, Avatar, BrandMark } from '../atoms';
 import { useAuth } from '../../context/AuthContext';
 
 interface PrivateLayoutProps {
@@ -33,9 +33,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-primary-400 flex items-center justify-center font-bold text-white">
-                IB
-              </div>
+              <BrandMark variant="onLight" />
               <span className="font-bold text-lg hidden sm:inline text-dark-900">Inter Bogotá</span>
             </Link>
 
