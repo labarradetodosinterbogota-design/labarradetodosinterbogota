@@ -3,15 +3,15 @@ import React from 'react';
 export const History: React.FC = () => {
   return (
     <div className="space-y-12 max-w-3xl mx-auto">
-      <div>
-        <h1 className="text-4xl font-bold text-dark-900 mb-4">Nuestra historia</h1>
-        <p className="text-lg text-dark-600">
+      <header className="rounded-2xl border border-white/10 bg-dark-900/90 px-6 py-8 shadow-lg backdrop-blur-sm">
+        <h1 className="text-4xl font-bold text-white mb-3">Nuestra historia</h1>
+        <p className="text-lg text-dark-200">
           La trayectoria del movimiento de hinchada de Inter Bogotá
         </p>
-      </div>
+      </header>
 
-      <div className="prose prose-invert max-w-none">
-        <section className="bg-white rounded-lg border border-dark-200 p-8 mb-8">
+      <div className="max-w-none space-y-8">
+        <section className="bg-white rounded-lg border border-dark-200 p-8">
           <h2 className="text-2xl font-bold text-dark-900 mb-4">Los inicios</h2>
           <p className="text-dark-600 mb-4">
             La barra popular de Inter Bogotá nació con una misión clara: unir a la hinchada en torno al
@@ -23,7 +23,7 @@ export const History: React.FC = () => {
           </p>
         </section>
 
-        <section className="bg-white rounded-lg border border-dark-200 p-8 mb-8">
+        <section className="bg-white rounded-lg border border-dark-200 p-8">
           <h2 className="text-2xl font-bold text-dark-900 mb-4">Valores en la práctica</h2>
           <p className="text-dark-600 mb-4">A lo largo del tiempo hemos demostrado compromiso con:</p>
           <ul className="text-dark-600 space-y-2 mb-4">

@@ -9,12 +9,12 @@ export const Calendar: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold text-dark-900 mb-2">Calendario</h1>
-        <p className="text-dark-600">
+      <header className="rounded-2xl border border-white/10 bg-dark-900/90 px-6 py-8 shadow-lg backdrop-blur-sm">
+        <h1 className="text-4xl font-bold text-white mb-2">Calendario</h1>
+        <p className="text-lg text-dark-200">
           Próximos partidos, ensayos y eventos de la barra
         </p>
-      </div>
+      </header>
 
       {error && (
         <Alert type="error" message="No se pudo cargar el calendario. Intenta de nuevo." />
@@ -38,18 +38,18 @@ export const Calendar: React.FC = () => {
                 type="button"
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
+                className="rounded-lg border border-dark-200 px-4 py-2 text-dark-900 disabled:opacity-50"
               >
                 Anterior
               </button>
-              <span className="px-4 py-2">
+              <span className="px-4 py-2 text-dark-900">
                 Página {page} de {data.total_pages}
               </span>
               <button
                 type="button"
                 onClick={() => setPage(Math.min(data.total_pages, page + 1))}
                 disabled={page === data.total_pages}
-                className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
+                className="rounded-lg border border-dark-200 px-4 py-2 text-dark-900 disabled:opacity-50"
               >
                 Siguiente
               </button>
@@ -57,8 +57,8 @@ export const Calendar: React.FC = () => {
           )}
         </>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-dark-600 text-lg">No hay eventos próximos por ahora</p>
+        <div className="rounded-xl border border-dark-200 bg-white/95 px-6 py-12 text-center shadow-sm backdrop-blur-sm">
+          <p className="text-lg text-dark-900">No hay eventos próximos por ahora</p>
         </div>
       )}
     </div>
