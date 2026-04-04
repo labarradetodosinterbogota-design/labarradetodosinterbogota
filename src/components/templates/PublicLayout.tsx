@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button, BrandMark } from '../atoms';
+import { BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
               <BrandMark variant="onDark" />
-              <span className="font-bold text-lg hidden sm:inline">Inter Bogotá</span>
+              <span className="font-bold text-lg hidden sm:inline">{BAR_OFFICIAL_NAME}</span>
             </Link>
 
             <button
@@ -88,9 +89,9 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
             <div>
-              <h3 className="font-bold text-primary-400 mb-4">Inter Bogotá</h3>
+              <h3 className="font-bold text-primary-400 mb-4">{BAR_OFFICIAL_NAME}</h3>
               <p className="text-dark-300 text-sm">
-                Barra popular unida por Inter Bogotá. Abierta, no violenta y democrática.
+                Barra popular unida por {BAR_OFFICIAL_NAME}. Abierta, no violenta y democrática.
               </p>
             </div>
             <div>
@@ -122,7 +123,9 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             </div>
           </div>
           <div className="border-t border-dark-700 pt-8 text-center text-sm text-dark-400">
-            <p>&copy; {new Date().getFullYear()} Inter Bogotá Barra Popular. Todos los derechos reservados.</p>
+            <p>
+              &copy; {new Date().getFullYear()} {BAR_LEGAL_NAME}. Todos los derechos reservados.
+            </p>
           </div>
         </div>
       </footer>

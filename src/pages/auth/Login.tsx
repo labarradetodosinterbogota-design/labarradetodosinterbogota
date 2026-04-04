@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Button, Input, Alert } from '../../components/atoms';
 import { PublicLayout } from '../../components/templates';
 import { useAuth } from '../../context/AuthContext';
+import { BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 interface LoginFormData {
   email: string;
@@ -39,7 +40,7 @@ export const Login: React.FC = () => {
       <div className="max-w-md mx-auto py-12">
         <div className="bg-white rounded-lg border border-dark-200 p-8">
           <h1 className="text-2xl font-bold text-dark-900 mb-2">Bienvenido de nuevo</h1>
-          <p className="text-dark-600 mb-6">Ingresa a tu cuenta de Inter Bogotá</p>
+          <p className="text-dark-600 mb-6">Ingresa a tu cuenta de {BAR_OFFICIAL_NAME}</p>
 
           {error && <Alert type="error" message={error} className="mb-6" />}
 

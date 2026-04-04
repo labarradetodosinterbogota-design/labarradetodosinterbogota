@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Alert } from '../../components/atoms';
 import { Download, Share2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 export const MembershipCard: React.FC = () => {
   const { user } = useAuth();
@@ -41,7 +42,7 @@ export const MembershipCard: React.FC = () => {
         <div className="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 rounded-xl p-8 text-white shadow-2xl max-w-md mx-auto">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h3 className="font-bold text-primary-400">Inter Bogotá</h3>
+              <h3 className="font-bold text-primary-400">{BAR_OFFICIAL_NAME}</h3>
               <p className="text-sm text-dark-200">Carné de integrante</p>
             </div>
             <div className="w-12 h-12 rounded-lg bg-primary-400 text-dark-900 flex items-center justify-center font-bold text-lg">

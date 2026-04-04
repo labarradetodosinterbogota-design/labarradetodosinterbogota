@@ -1,4 +1,5 @@
 import React from 'react';
+import { BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 export const History: React.FC = () => {
   return (
@@ -6,7 +7,7 @@ export const History: React.FC = () => {
       <header className="rounded-2xl border border-white/10 bg-dark-900/90 px-6 py-8 shadow-lg backdrop-blur-sm">
         <h1 className="text-4xl font-bold text-white mb-3">Nuestra historia</h1>
         <p className="text-lg text-dark-200">
-          La trayectoria del movimiento de hinchada de Inter Bogotá
+          La trayectoria del movimiento de hinchada de {BAR_OFFICIAL_NAME}
         </p>
       </header>
 
@@ -14,7 +15,7 @@ export const History: React.FC = () => {
         <section className="bg-white rounded-lg border border-dark-200 p-8">
           <h2 className="text-2xl font-bold text-dark-900 mb-4">Los inicios</h2>
           <p className="text-dark-600 mb-4">
-            La barra popular de Inter Bogotá nació con una misión clara: unir a la hinchada en torno al
+            La barra popular de {BAR_OFFICIAL_NAME} nació con una misión clara: unir a la hinchada en torno al
             club y sostener principios de no violencia y decisión democrática.
           </p>
           <p className="text-dark-600 mb-4">
@@ -54,7 +55,7 @@ export const History: React.FC = () => {
           <h2 className="text-2xl font-bold text-dark-900 mb-4">Súmate al movimiento</h2>
           <p className="text-dark-600">
             Seguimos creciendo. Nuestros integrantes vienen de todos los ámbitos, unidos por el amor a
-            Inter Bogotá y por una hinchada responsable y apasionada. Si compartes estos valores, eres
+            {BAR_OFFICIAL_NAME} y por una hinchada responsable y apasionada. Si compartes estos valores, eres
             bienvenido.
           </p>
         </section>

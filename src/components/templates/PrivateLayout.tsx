@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, Users, FileText, Vote, MessageCircle } from 'lucide-react';
 import { Button, Avatar, BrandMark } from '../atoms';
 import { useAuth } from '../../context/AuthContext';
+import { BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 interface PrivateLayoutProps {
   children: React.ReactNode;
@@ -35,7 +36,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
           <div className="flex items-center justify-between">
             <Link to="/dashboard" className="flex items-center gap-2" onClick={closeMenu}>
               <BrandMark variant="onLight" />
-              <span className="font-bold text-lg hidden sm:inline text-dark-900">Inter Bogotá</span>
+              <span className="font-bold text-lg hidden sm:inline text-dark-900">{BAR_OFFICIAL_NAME}</span>
             </Link>
 
             <button
@@ -130,7 +131,9 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
 
       <footer className="bg-white/95 backdrop-blur-sm border-t border-dark-200/80 mt-12">
         <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-dark-500">
-          <p>&copy; {new Date().getFullYear()} Inter Bogotá Barra Popular. Todos los derechos reservados.</p>
+          <p>
+            &copy; {new Date().getFullYear()} {BAR_LEGAL_NAME}. Todos los derechos reservados.
+          </p>
         </div>
       </footer>
     </div>
