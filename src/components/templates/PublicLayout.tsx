@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button, BrandMark } from '../atoms';
-import { BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
+import { BAR_CONTACT_EMAIL, BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -117,7 +117,14 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             <div>
               <h3 className="font-bold mb-4">Contacto</h3>
               <ul className="space-y-2 text-sm text-dark-300">
-                <li>info@interbogota.com</li>
+                <li>
+                  <a
+                    href={`mailto:${BAR_CONTACT_EMAIL}`}
+                    className="hover:text-primary-400 transition-colors"
+                  >
+                    {BAR_CONTACT_EMAIL}
+                  </a>
+                </li>
                 <li>+57 1 XXXX XXXX</li>
               </ul>
             </div>
