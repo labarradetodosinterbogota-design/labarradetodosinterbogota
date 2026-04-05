@@ -22,7 +22,7 @@ export const MembershipCard: React.FC = () => {
 
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
-      <div>
+      <div className="bg-white rounded-lg border border-dark-200 p-6">
         <h1 className="text-4xl font-bold text-dark-900 mb-2">Carné digital de integrante</h1>
         <p className="text-dark-600">
           Comprobante de membresía para acceso y eventos del grupo
