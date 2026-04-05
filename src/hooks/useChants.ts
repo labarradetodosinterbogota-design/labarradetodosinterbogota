@@ -28,7 +28,13 @@ export const useCreateChant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ chant, userId }: { chant: Omit<Chant, 'id' | 'created_at' | 'updated_at'>; userId: string }) =>
+    mutationFn: ({
+      chant,
+      userId,
+    }: {
+      chant: Omit<Chant, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+      userId: string;
+    }) =>
       chantService.create(chant, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-chants'] });

@@ -82,14 +82,16 @@ export const chantService = {
   },
 
   async create(
-    chant: Omit<Chant, 'id' | 'created_at' | 'updated_at'>,
+    chant: Omit<Chant, 'id' | 'created_at' | 'updated_at' | 'created_by'>,
     userId: string
   ): Promise<Chant> {
+    const nowIso = new Date().toISOString();
     const { data, error } = await supabase
       .from('chants')
       .insert({
         ...chant,
         created_by: userId,
+        updated_at: nowIso,
       })
       .select()
       .single();
@@ -99,9 +101,10 @@ export const chantService = {
   },
 
   async update(id: string, updates: Partial<Chant>): Promise<Chant> {
+    const nowIso = new Date().toISOString();
     const { data, error } = await supabase
       .from('chants')
-      .update(updates)
+      .update({ ...updates, updated_at: nowIso })
       .eq('id', id)
       .select()
       .single();

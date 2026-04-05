@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, Spinner } from '../../components/atoms';
-import { useAllChants } from '../../hooks';
+import { Alert, Badge, Button, Input, Select, Spinner, TextArea } from '../../components/atoms';
+import { useAllChants, useCreateChant } from '../../hooks';
+import { useAuth } from '../../context/AuthContext';
 import { chantStatusLabels } from '../../locales/es';
 import { chantService } from '../../services/chantService';
 import type { Chant } from '../../types';
@@ -12,15 +13,35 @@ function getStatusVariant(status: Chant['status']): 'success' | 'warning' | 'err
   return 'error';
 }
 
+const STATUS_OPTIONS: Array<{ value: Chant['status']; label: string }> = [
+  { value: 'approved', label: 'Aprobado' },
+  { value: 'pending', label: 'Pendiente' },
+  { value: 'rejected', label: 'Rechazado' },
+];
+
+function toNullableString(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
 export const AdminChants: React.FC = () => {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
+  const [editingChantId, setEditingChantId] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('');
+  const [lyrics, setLyrics] = useState('');
+  const [audioUrl, setAudioUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [status, setStatus] = useState<Chant['status']>('approved');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useAllChants(page, 15);
+  const createMutation = useCreateChant();
 
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: Chant['status'] }) =>
-      chantService.update(id, { status }),
+  const updateMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Chant> }) =>
+      chantService.update(id, updates),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['all-chants'] });
       void queryClient.invalidateQueries({ queryKey: ['chants'] });
@@ -35,34 +56,104 @@ export const AdminChants: React.FC = () => {
     },
   });
 
-  const handleStatusChange = async (id: string, status: Chant['status']) => {
+  const resetForm = () => {
+    setEditingChantId(null);
+    setTitle('');
+    setCategory('');
+    setLyrics('');
+    setAudioUrl('');
+    setVideoUrl('');
+    setStatus('approved');
+  };
+
+  const handleEdit = (chant: Chant) => {
+    setEditingChantId(chant.id);
+    setTitle(chant.title);
+    setCategory(chant.category);
+    setLyrics(chant.lyrics);
+    setAudioUrl(chant.audio_url ?? '');
+    setVideoUrl(chant.video_url ?? '');
+    setStatus(chant.status);
+    setMessage(null);
+  };
+
+  const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage(null);
+
+    if (!user) {
+      setMessage({ type: 'error', text: 'No hay sesión activa para gestionar cánticos.' });
+      return;
+    }
+
+    const safeTitle = title.trim();
+    const safeCategory = category.trim();
+    const safeLyrics = lyrics.trim();
+
+    if (!safeTitle || !safeCategory || !safeLyrics) {
+      setMessage({ type: 'error', text: 'Título, categoría y letra son obligatorios.' });
+      return;
+    }
+
+    const payload: Omit<Chant, 'id' | 'created_at' | 'updated_at' | 'created_by'> = {
+      title: safeTitle,
+      category: safeCategory,
+      lyrics: safeLyrics,
+      audio_url: toNullableString(audioUrl),
+      video_url: toNullableString(videoUrl),
+      status,
+    };
+
+    try {
+      if (editingChantId) {
+        await updateMutation.mutateAsync({ id: editingChantId, updates: payload });
+        setMessage({ type: 'success', text: 'Cántico actualizado correctamente.' });
+      } else {
+        await createMutation.mutateAsync({ chant: payload, userId: user.id });
+        setMessage({ type: 'success', text: 'Cántico creado correctamente.' });
+      }
+      resetForm();
+    } catch {
+      setMessage({ type: 'error', text: 'No se pudo guardar el cántico.' });
+    }
+  };
+
+  const handleStatusChange = async (id: string, nextStatus: Chant['status']) => {
     setMessage(null);
     try {
-      await updateStatusMutation.mutateAsync({ id, status });
+      await updateMutation.mutateAsync({
+        id,
+        updates: { status: nextStatus },
+      });
       setMessage({
         type: 'success',
-        text: `Canto ${status === 'approved' ? 'aprobado' : 'rechazado'} correctamente.`,
+        text: `Cántico ${nextStatus === 'approved' ? 'aprobado' : 'rechazado'} correctamente.`,
       });
     } catch {
-      setMessage({ type: 'error', text: 'No se pudo actualizar el estado del canto.' });
+      setMessage({ type: 'error', text: 'No se pudo actualizar el estado del cántico.' });
     }
   };
 
   const handleDelete = async (id: string) => {
-    const accepted = globalThis.confirm('Esta acción eliminará el canto. ¿Deseas continuar?');
+    const accepted = globalThis.confirm('Esta acción eliminará el cántico. ¿Deseas continuar?');
     if (!accepted) return;
 
     setMessage(null);
     try {
       await deleteMutation.mutateAsync(id);
-      setMessage({ type: 'success', text: 'Canto eliminado correctamente.' });
+      if (editingChantId === id) {
+        resetForm();
+      }
+      setMessage({ type: 'success', text: 'Cántico eliminado correctamente.' });
     } catch {
-      setMessage({ type: 'error', text: 'No se pudo eliminar el canto.' });
+      setMessage({ type: 'error', text: 'No se pudo eliminar el cántico.' });
     }
   };
 
   const chants = data?.data ?? [];
   const pendingCount = chants.filter((chant) => chant.status === 'pending').length;
+  const approvedCount = chants.filter((chant) => chant.status === 'approved').length;
+  const isSaving = createMutation.isPending || updateMutation.isPending;
   let chantsContent: React.ReactNode;
 
   if (isLoading) {
@@ -105,9 +196,18 @@ export const AdminChants: React.FC = () => {
                     <Button
                       type="button"
                       size="sm"
+                      variant="secondary"
+                      disabled={isSaving}
+                      onClick={() => handleEdit(chant)}
+                    >
+                      Editar
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
                       variant="outline"
                       disabled={chant.status === 'approved'}
-                      isLoading={updateStatusMutation.isPending}
+                      isLoading={updateMutation.isPending}
                       onClick={() => {
                         void handleStatusChange(chant.id, 'approved');
                       }}
@@ -119,7 +219,7 @@ export const AdminChants: React.FC = () => {
                       size="sm"
                       variant="secondary"
                       disabled={chant.status === 'rejected'}
-                      isLoading={updateStatusMutation.isPending}
+                      isLoading={updateMutation.isPending}
                       onClick={() => {
                         void handleStatusChange(chant.id, 'rejected');
                       }}
@@ -131,6 +231,7 @@ export const AdminChants: React.FC = () => {
                       size="sm"
                       variant="ghost"
                       isLoading={deleteMutation.isPending}
+                      disabled={isSaving}
                       onClick={() => {
                         void handleDelete(chant.id);
                       }}
@@ -164,8 +265,68 @@ export const AdminChants: React.FC = () => {
 
       {message && <Alert type={message.type} message={message.text} onClose={() => setMessage(null)} />}
 
+      <form onSubmit={handleSave} className="bg-white rounded-lg border border-dark-200 p-6 space-y-4">
+        <h2 className="text-xl font-semibold text-dark-900">
+          {editingChantId ? 'Editar cántico' : 'Subir cántico'}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Título"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Ej: Dale Inter Bogotá"
+            required
+          />
+          <Input
+            label="Categoría"
+            value={category}
+            onChange={(event) => setCategory(event.target.value)}
+            placeholder="Ej: Tribuna norte"
+            required
+          />
+        </div>
+        <TextArea
+          label="Letra"
+          value={lyrics}
+          onChange={(event) => setLyrics(event.target.value)}
+          rows={4}
+          required
+        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            label="URL de audio (opcional)"
+            value={audioUrl}
+            onChange={(event) => setAudioUrl(event.target.value)}
+            placeholder="https://..."
+          />
+          <Input
+            label="URL de video (opcional)"
+            value={videoUrl}
+            onChange={(event) => setVideoUrl(event.target.value)}
+            placeholder="https://..."
+          />
+          <Select
+            label="Estado"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as Chant['status'])}
+            options={STATUS_OPTIONS}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" variant="primary" isLoading={isSaving} disabled={deleteMutation.isPending}>
+            {editingChantId ? 'Guardar cambios' : 'Crear cántico'}
+          </Button>
+          {editingChantId && (
+            <Button type="button" variant="secondary" onClick={resetForm} disabled={isSaving}>
+              Cancelar edición
+            </Button>
+          )}
+        </div>
+      </form>
+
       <div className="bg-white rounded-lg border border-dark-200 p-4 flex flex-wrap items-center gap-3">
         <Badge variant="warning">Pendientes en esta página: {pendingCount}</Badge>
+        <Badge variant="success">Aprobados en esta página: {approvedCount}</Badge>
         <span className="text-sm text-dark-500">Total listados: {chants.length}</span>
       </div>
 

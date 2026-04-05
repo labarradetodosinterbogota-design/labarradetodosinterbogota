@@ -1,8 +1,35 @@
 import React, { useState } from 'react';
-import { Button, Alert } from '../../components/atoms';
+import { Button, Alert, BrandMark } from '../../components/atoms';
 import { Download, Share2 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../../context/AuthContext';
 import { BAR_OFFICIAL_NAME } from '../../constants/brand';
+
+async function getBrandLogoDataUrl(): Promise<string | null> {
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.decoding = 'async';
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('No se pudo cargar el logo.'));
+      img.src = '/favicon.svg';
+    });
+
+    const canvas = globalThis.document?.createElement('canvas');
+    if (!canvas) return null;
+
+    canvas.width = image.naturalWidth || 64;
+    canvas.height = image.naturalHeight || 64;
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+
+    context.drawImage(image, 0, 0);
+    return canvas.toDataURL('image/png');
+  } catch {
+    return null;
+  }
+}
 
 export const MembershipCard: React.FC = () => {
   const { user } = useAuth();
@@ -11,50 +38,122 @@ export const MembershipCard: React.FC = () => {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   if (!user) return null;
+  const joinYear = new Date(user.join_date).getFullYear();
+  const initials = user.full_name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase();
+  const verificationUrl = globalThis.window?.location?.origin
+    ? `${globalThis.window.location.origin}/membership-card?uid=${encodeURIComponent(user.id)}`
+    : '';
+  const qrValue = [
+    `barra=${BAR_OFFICIAL_NAME}`,
+    `member_id=${user.member_id}`,
+    `user_id=${user.id}`,
+    `name=${user.full_name}`,
+    `join_year=${joinYear}`,
+    verificationUrl ? `verify_url=${verificationUrl}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   const handleDownloadPDF = async () => {
     setFeedback(null);
     setIsDownloading(true);
     try {
       const { default: JsPdf } = await import('jspdf');
-      const joinYear = new Date(user.join_date).getFullYear();
+      const { toDataURL } = await import('qrcode');
       const issuedAt = new Date().toLocaleDateString('es-CO');
       const doc = new JsPdf({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const logoDataUrl = await getBrandLogoDataUrl();
+      const qrDataUrl = await toDataURL(qrValue, {
+        width: 256,
+        margin: 1,
+        color: { dark: '#000000', light: '#FFFFFF' },
+      });
 
       doc.setFillColor(20, 22, 30);
-      doc.rect(15, 20, 180, 70, 'F');
-      doc.setTextColor(255, 255, 255);
+      doc.roundedRect(15, 20, 180, 90, 4, 4, 'F');
+      doc.setTextColor(252, 211, 77);
       doc.setFontSize(15);
       doc.text(BAR_OFFICIAL_NAME, 22, 32);
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(11);
       doc.text('Carné digital de integrante', 22, 39);
 
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(166, 25, 21, 21, 2, 2, 'F');
+      if (logoDataUrl) {
+        doc.addImage(logoDataUrl, 'PNG', 169, 28, 15, 15, undefined, 'FAST');
+      }
+      doc.setFillColor(0, 0, 0);
+      doc.roundedRect(169, 48, 15, 7, 1.5, 1.5, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.text(initials, 176.5, 52.6, { align: 'center' });
+
+      doc.setFillColor(245, 186, 59);
+      doc.setDrawColor(252, 211, 77);
+      doc.roundedRect(22, 50, 166, 43, 2, 2, 'FD');
+
+      doc.setFillColor(0, 0, 0);
+      doc.roundedRect(26, 54, 158, 13, 1.5, 1.5, 'F');
+      doc.roundedRect(26, 71, 76, 13, 1.5, 1.5, 'F');
+      doc.roundedRect(108, 71, 76, 13, 1.5, 1.5, 'F');
+
+      doc.setTextColor(170, 170, 170);
+      doc.setFontSize(7);
+      doc.text('NOMBRE', 30, 58);
+      doc.text('CARNÉ', 30, 75);
+      doc.text('INTEGRANTE DESDE', 112, 75);
+
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
-      doc.text(`Nombre: ${user.full_name}`, 22, 52);
-      doc.text(`Carné: ${user.member_id}`, 22, 59);
-      doc.text(`Integrante desde: ${joinYear}`, 22, 66);
-      doc.text(`Emitido: ${issuedAt}`, 22, 73);
+      doc.text(user.full_name, 30, 63, { maxWidth: 148 });
+      doc.text(user.member_id, 30, 80, { maxWidth: 70 });
+      doc.text(String(joinYear), 112, 80);
+      doc.setTextColor(28, 33, 43);
+      doc.setFontSize(9);
+      doc.text(`Emitido: ${issuedAt}`, 24, 97);
 
       doc.setDrawColor(220, 225, 235);
-      doc.rect(15, 100, 180, 80);
+      doc.roundedRect(15, 115, 180, 65, 3, 3);
       doc.setTextColor(28, 33, 43);
       doc.setFontSize(13);
-      doc.text('Comprobante de membresía', 22, 114);
+      doc.text('Comprobante de membresía', 22, 129);
       doc.setFontSize(10);
       doc.text(
         'Este documento acredita tu membresía dentro de Barra Popular Legión Bacatá Inter Bogotá.',
         22,
-        124
+        139,
+        { maxWidth: 110 }
       );
       doc.text(
         'Presenta este carné en accesos y eventos oficiales del grupo cuando se requiera.',
         22,
-        131
+        146,
+        { maxWidth: 110 }
       );
+
+      doc.setTextColor(28, 33, 43);
+      doc.setFontSize(8);
+      doc.text('QR DE VERIFICACION', 149, 130);
+      doc.setFillColor(245, 186, 59);
+      doc.setDrawColor(252, 211, 77);
+      doc.roundedRect(146, 134, 42, 34, 2, 2, 'FD');
+      doc.setFillColor(0, 0, 0);
+      doc.roundedRect(150, 138, 34, 26, 1.5, 1.5, 'F');
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(157, 141, 20, 20, 1, 1, 'F');
+      doc.addImage(qrDataUrl, 'PNG', 157.5, 141.5, 19, 19, undefined, 'FAST');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(7);
+      doc.text('ESCANEA', 167, 166, { align: 'center' });
 
       doc.setFontSize(9);
       doc.setTextColor(90, 100, 120);
-      doc.text(`ID de verificación: ${user.id}`, 22, 167);
+      doc.text(`ID de verificación: ${user.id}`, 22, 173);
 
       const fileName = `carne-${user.member_id}.pdf`;
       doc.save(fileName);
@@ -74,7 +173,6 @@ export const MembershipCard: React.FC = () => {
     setFeedback(null);
     setIsSharing(true);
     try {
-      const joinYear = new Date(user.join_date).getFullYear();
       const summary = [
         `Carné de integrante - ${BAR_OFFICIAL_NAME}`,
         `Nombre: ${user.full_name}`,
@@ -118,12 +216,6 @@ export const MembershipCard: React.FC = () => {
     }
   };
 
-  const initials = user.full_name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase();
-
   return (
     <div className="space-y-8">
       <div className="bg-white rounded-lg border border-dark-200 p-6 text-left">
@@ -140,36 +232,43 @@ export const MembershipCard: React.FC = () => {
           <div className="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 rounded-xl p-8 text-white shadow-2xl max-w-md mx-auto">
             <div className="flex justify-between items-start mb-8">
               <div>
-                <h3 className="font-bold text-primary-400">{BAR_OFFICIAL_NAME}</h3>
-                <p className="text-sm text-dark-200">Carné de integrante</p>
+                <h3 className="font-bold text-amber-300">{BAR_OFFICIAL_NAME}</h3>
+                <p className="text-sm text-dark-100">Carné de integrante</p>
               </div>
-              <div className="w-12 h-12 rounded-lg bg-primary-400 text-dark-900 flex items-center justify-center font-bold text-lg">
-                {initials}
-              </div>
-            </div>
-
-            <div className="border-t border-dark-700 pt-6 pb-6 mb-6 space-y-4">
-              <div>
-                <p className="text-xs text-dark-300 mb-1">Nombre</p>
-                <p className="font-bold text-lg">{user.full_name}</p>
-              </div>
-              <div className="flex justify-between">
-                <div>
-                  <p className="text-xs text-dark-300 mb-1">Carné</p>
-                  <p className="font-mono font-bold">{user.member_id}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-dark-300 mb-1">Integrante desde</p>
-                  <p className="font-bold">{new Date(user.join_date).getFullYear()}</p>
+              <div className="flex flex-col items-end gap-2">
+                <BrandMark variant="onDark" />
+                <div className="rounded-md bg-black px-2 py-1 text-xs font-bold tracking-wider text-white">
+                  {initials}
                 </div>
               </div>
             </div>
 
-            <div className="border-t border-dark-700 pt-6">
-              <p className="text-xs text-dark-300 mb-2">Código QR de verificación</p>
-              <div className="bg-white p-4 rounded">
-                <div className="w-full h-32 bg-dark-100 rounded flex items-center justify-center text-dark-500 text-xs">
-                  Código QR próximamente
+            <div className="rounded-lg border border-amber-300 bg-amber-400 p-4 mb-6 space-y-3">
+              <div className="rounded-md bg-black px-3 py-2">
+                <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Nombre</p>
+                <p className="text-base font-bold text-white">{user.full_name}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-md bg-black px-3 py-2">
+                  <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Carné</p>
+                  <p className="font-mono font-bold text-white">{user.member_id}</p>
+                </div>
+                <div className="rounded-md bg-black px-3 py-2">
+                  <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Integrante desde</p>
+                  <p className="font-bold text-white">{new Date(user.join_date).getFullYear()}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-amber-300 bg-amber-400 p-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-dark-900">
+                Código QR de verificación
+              </p>
+              <div className="rounded-md bg-black p-3">
+                <div className="flex h-28 w-full items-center justify-center rounded border border-white/20 bg-black px-2">
+                  <div className="rounded-md bg-white p-2 shadow-sm">
+                    <QRCodeSVG value={qrValue} size={96} bgColor="#ffffff" fgColor="#000000" level="M" />
+                  </div>
                 </div>
               </div>
             </div>
