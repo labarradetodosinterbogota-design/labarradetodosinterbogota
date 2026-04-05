@@ -21,6 +21,62 @@ export const Voting: React.FC = () => {
       }
     );
   };
+  const hasActivePolls = (data?.data?.length ?? 0) > 0;
+  let votingContent: React.ReactNode;
+
+  if (isLoading) {
+    votingContent = (
+      <div className="flex justify-center py-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  } else if (hasActivePolls) {
+    const polls = data?.data ?? [];
+    const totalPages = data?.total_pages ?? 0;
+    votingContent = (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {polls.map((poll) => (
+            <VotingCard
+              key={poll.id}
+              poll={poll}
+              onVote={(p, option) => handleVote(p.id, option)}
+            />
+          ))}
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-8">
+            <button
+              type="button"
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <span className="px-4 py-2">
+              Página {page} de {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+      </>
+    );
+  } else {
+    votingContent = (
+      <div className="bg-white rounded-lg border border-dark-200 p-10 text-center">
+        <p className="text-dark-600 text-lg">No hay votaciones activas en este momento</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -34,52 +90,7 @@ export const Voting: React.FC = () => {
       {error && (
         <Alert type="error" message="No se pudieron cargar las votaciones. Intenta de nuevo." />
       )}
-
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Spinner size="lg" />
-        </div>
-      ) : data?.data && data.data.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {data.data.map((poll) => (
-              <VotingCard
-                key={poll.id}
-                poll={poll}
-                onVote={(p, option) => handleVote(p.id, option)}
-              />
-            ))}
-          </div>
-
-          {data.total_pages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
-              <button
-                type="button"
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-                className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
-              >
-                Anterior
-              </button>
-              <span className="px-4 py-2">
-                Página {page} de {data.total_pages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setPage(Math.min(data.total_pages, page + 1))}
-                disabled={page === data.total_pages}
-                className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-dark-600 text-lg">No hay votaciones activas en este momento</p>
-        </div>
-      )}
+      {votingContent}
     </div>
   );
 };

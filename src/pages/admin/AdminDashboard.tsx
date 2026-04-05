@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Users, FileText, Vote, Music, Package, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, FileText, Vote, Music, Package, Mail, CalendarDays } from 'lucide-react';
 import { Button, Input, TextArea, Alert, Spinner } from '../../components/atoms';
 import { GalleryAdminPanel, PendingMembersPanel } from '../../components/molecules';
 import { supabase } from '../../services/supabaseClient';
@@ -80,36 +81,60 @@ export const AdminDashboard: React.FC = () => {
           <Music className="w-10 h-10 text-primary-400 mb-3" />
           <h3 className="font-semibold text-dark-900 mb-2">Cantos</h3>
           <p className="text-sm text-dark-600 mb-4">Subir y aprobar cantos</p>
-          <button type="button" className="text-primary-400 hover:text-primary-500 text-sm font-medium">
+          <Link
+            to="/admin/chants"
+            className="text-primary-400 hover:text-primary-500 text-sm font-medium inline-block"
+          >
             Gestionar cantos →
-          </button>
+          </Link>
         </div>
 
         <div className="bg-white rounded-lg border border-dark-200 p-6 hover:shadow-lg transition-shadow">
           <Vote className="w-10 h-10 text-primary-400 mb-3" />
           <h3 className="font-semibold text-dark-900 mb-2">Votaciones</h3>
           <p className="text-sm text-dark-600 mb-4">Crear y administrar votaciones</p>
-          <button type="button" className="text-primary-400 hover:text-primary-500 text-sm font-medium">
+          <Link
+            to="/admin/voting"
+            className="text-primary-400 hover:text-primary-500 text-sm font-medium inline-block"
+          >
             Gestionar votaciones →
-          </button>
+          </Link>
         </div>
 
         <div className="bg-white rounded-lg border border-dark-200 p-6 hover:shadow-lg transition-shadow">
           <FileText className="w-10 h-10 text-primary-400 mb-3" />
           <h3 className="font-semibold text-dark-900 mb-2">Documentos</h3>
           <p className="text-sm text-dark-600 mb-4">Subir documentos oficiales</p>
-          <button type="button" className="text-primary-400 hover:text-primary-500 text-sm font-medium">
+          <Link
+            to="/admin/documents"
+            className="text-primary-400 hover:text-primary-500 text-sm font-medium inline-block"
+          >
             Gestionar documentos →
-          </button>
+          </Link>
         </div>
 
         <div className="bg-white rounded-lg border border-dark-200 p-6 hover:shadow-lg transition-shadow">
           <Package className="w-10 h-10 text-primary-400 mb-3" />
           <h3 className="font-semibold text-dark-900 mb-2">Inventario</h3>
           <p className="text-sm text-dark-600 mb-4">Banderas, instrumentos y equipo</p>
-          <button type="button" className="text-primary-400 hover:text-primary-500 text-sm font-medium">
+          <Link
+            to="/admin/inventory"
+            className="text-primary-400 hover:text-primary-500 text-sm font-medium inline-block"
+          >
             Gestionar inventario →
-          </button>
+          </Link>
+        </div>
+
+        <div className="bg-white rounded-lg border border-dark-200 p-6 hover:shadow-lg transition-shadow">
+          <CalendarDays className="w-10 h-10 text-primary-400 mb-3" />
+          <h3 className="font-semibold text-dark-900 mb-2">Calendario</h3>
+          <p className="text-sm text-dark-600 mb-4">Crear y administrar eventos públicos y privados</p>
+          <Link
+            to="/admin/calendar"
+            className="text-primary-400 hover:text-primary-500 text-sm font-medium inline-block"
+          >
+            Gestionar calendario →
+          </Link>
         </div>
       </div>
 

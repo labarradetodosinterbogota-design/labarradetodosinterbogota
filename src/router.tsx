@@ -22,6 +22,11 @@ import { Forum } from './pages/private/Forum';
 import { MembershipCard } from './pages/private/MembershipCard';
 import { Contribute } from './pages/private/Contribute';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminChants } from './pages/admin/AdminChants';
+import { AdminVoting } from './pages/admin/AdminVoting';
+import { AdminDocuments } from './pages/admin/AdminDocuments';
+import { AdminInventory } from './pages/admin/AdminInventory';
+import { AdminCalendar } from './pages/admin/AdminCalendar';
 
 const INACTIVE_ACCESS_MESSAGE =
   'Tu cuenta no tiene acceso al área privada. Si tu solicitud fue rechazada, contacta a un coordinador.';
@@ -206,6 +211,56 @@ export const Router: React.FC = () => {
             <AdminRoute>
               <PrivateLayout>
                 <AdminDashboard />
+              </PrivateLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/chants"
+          element={
+            <AdminRoute>
+              <PrivateLayout>
+                <AdminChants />
+              </PrivateLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/voting"
+          element={
+            <AdminRoute>
+              <PrivateLayout>
+                <AdminVoting />
+              </PrivateLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/documents"
+          element={
+            <AdminRoute>
+              <PrivateLayout>
+                <AdminDocuments />
+              </PrivateLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/inventory"
+          element={
+            <AdminRoute>
+              <PrivateLayout>
+                <AdminInventory />
+              </PrivateLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/calendar"
+          element={
+            <AdminRoute>
+              <PrivateLayout>
+                <AdminCalendar />
               </PrivateLayout>
             </AdminRoute>
           }

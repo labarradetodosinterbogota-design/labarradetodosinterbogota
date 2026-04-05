@@ -119,7 +119,7 @@ export const Documents: React.FC = () => {
       )}
 
       {!isLoading && !hasDocuments && (
-        <div className="text-center py-12">
+        <div className="bg-white rounded-lg border border-dark-200 p-10 text-center">
           <p className="text-dark-600 text-lg">No hay documentos disponibles</p>
         </div>
       )}
