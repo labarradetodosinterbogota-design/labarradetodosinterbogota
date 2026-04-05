@@ -1,0 +1,124 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getMercadoPagoWebhookSecret, requireMercadoPagoEnv } from '../lib/env.js';
+import { json } from '../lib/http.js';
+import { extractMercadoPagoPaymentIdFromWebhook, getMercadoPagoPayment } from '../lib/mercadopagoApi.js';
+import { getJsonBody } from '../lib/parseBody.js';
+import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
+
+function readSecretQuery(req: VercelRequest): string {
+  const q = req.query.secret;
+  if (typeof q === 'string') return q;
+  if (Array.isArray(q) && typeof q[0] === 'string') return q[0];
+  return '';
+}
+
+function validateWebhookSecret(req: VercelRequest): boolean {
+  const expected = getMercadoPagoWebhookSecret();
+  if (!expected) {
+    return process.env.NODE_ENV !== 'production';
+  }
+  return readSecretQuery(req) === expected;
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  if (req.method !== 'POST') {
+    res.status(405).end('Method Not Allowed');
+    return;
+  }
+
+  if (!validateWebhookSecret(req)) {
+    res.status(401).end('Unauthorized');
+    return;
+  }
+
+  try {
+    requireMercadoPagoEnv();
+  } catch {
+    json(res, 503, { error: 'mercadopago_not_configured' });
+    return;
+  }
+
+  const body = getJsonBody(req);
+  const paymentId = extractMercadoPagoPaymentIdFromWebhook(body);
+  if (!paymentId) {
+    json(res, 200, { received: true, ignored: true });
+    return;
+  }
+
+  const { MERCADOPAGO_ACCESS_TOKEN } = requireMercadoPagoEnv();
+
+  let payment;
+  try {
+    payment = await getMercadoPagoPayment(MERCADOPAGO_ACCESS_TOKEN, paymentId);
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('mercadopago get payment', e);
+    }
+    json(res, 502, { error: 'payment_fetch_failed' });
+    return;
+  }
+
+  const externalRef = payment.external_reference?.trim();
+  if (!externalRef) {
+    json(res, 200, { received: true, ignored: true });
+    return;
+  }
+
+  const statusMap: Record<string, string> = {
+    approved: 'succeeded',
+    accredited: 'succeeded',
+    pending: 'pending',
+    in_process: 'pending',
+    rejected: 'failed',
+    cancelled: 'failed',
+    refunded: 'failed',
+    charged_back: 'failed',
+  };
+
+  const nextStatus = statusMap[payment.status] ?? 'pending';
+  const amountPesos =
+    payment.transaction_amount != null && Number.isFinite(payment.transaction_amount)
+      ? Math.round(payment.transaction_amount)
+      : null;
+
+  const supabase = getSupabaseAdmin();
+  const paymentIdStr = String(payment.id);
+
+  const { data: existing } = await supabase
+    .from('contributions')
+    .select('metadata')
+    .eq('id', externalRef)
+    .maybeSingle();
+
+  const prevMeta =
+    existing?.metadata && typeof existing.metadata === 'object' && !Array.isArray(existing.metadata)
+      ? (existing.metadata as Record<string, unknown>)
+      : {};
+
+  const updatePayload: Record<string, unknown> = {
+    mercadopago_payment_id: paymentIdStr,
+    status: nextStatus,
+    updated_at: new Date().toISOString(),
+    metadata: {
+      ...prevMeta,
+      mp_status: payment.status,
+      mp_currency: payment.currency_id,
+    },
+  };
+
+  if (amountPesos != null) {
+    updatePayload.amount_cents = amountPesos;
+  }
+
+  const { error } = await supabase
+    .from('contributions')
+    .update(updatePayload)
+    .eq('id', externalRef)
+    .eq('provider', 'mercadopago');
+
+  if (error && process.env.NODE_ENV === 'development') {
+    console.error('contributions mp webhook update', error);
+  }
+
+  json(res, 200, { received: true });
+}

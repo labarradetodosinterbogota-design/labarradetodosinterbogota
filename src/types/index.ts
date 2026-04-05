@@ -93,6 +93,34 @@ export interface BarraGalleryItem {
   created_at: string;
 }
 
+export type ContributionProvider = 'stripe' | 'mercadopago';
+
+/** Aporte visible en transparencia (área privada / resúmenes). */
+export interface ContributionTransparency {
+  id: string;
+  user_id: string | null;
+  amount_cents: number;
+  currency: string;
+  status: string;
+  provider: ContributionProvider;
+  donor_public_name: string | null;
+  created_at: string;
+}
+
+/** Gasto documentado por coordinación (factura / comprobante). */
+export interface FinanceExpense {
+  id: string;
+  title: string;
+  description: string | null;
+  amount_cents: number;
+  expense_date: string;
+  related_contribution_id: string | null;
+  receipt_storage_path: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Chant {
   id: string;
   title: string;

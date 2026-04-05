@@ -9,3 +9,4 @@ export { Pagination } from './Pagination';
 export { BarraGallerySection } from './BarraGallerySection';
 export { GalleryAdminPanel } from './GalleryAdminPanel';
 export { PendingMembersPanel } from './PendingMembersPanel';
+export { DonationSection } from './DonationSection';

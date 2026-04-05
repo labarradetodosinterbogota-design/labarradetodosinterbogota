@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../components/atoms';
 import { BAR_NAME_LEAD, BAR_NAME_TAIL, BAR_OFFICIAL_NAME } from '../../constants/brand';
 import { Heart, Users, Zap, Globe } from 'lucide-react';
-import { BarraGallerySection } from '../../components/molecules';
+import { BarraGallerySection, DonationSection } from '../../components/molecules';
 
 export const Home: React.FC = () => {
   return (
@@ -73,6 +73,9 @@ export const Home: React.FC = () => {
           <Link to="/chants">
             <Button variant="secondary">Ver cantos</Button>
           </Link>
+          <Link to="/donaciones">
+            <Button variant="secondary">Donaciones</Button>
+          </Link>
           <Link to="/calendar">
             <Button variant="secondary">Ver calendario</Button>
           </Link>
@@ -106,6 +109,8 @@ export const Home: React.FC = () => {
       </section>
 
       <BarraGallerySection />
+
+      <DonationSection returnPath="/donaciones" variant="home" />
     </div>
   );
 };

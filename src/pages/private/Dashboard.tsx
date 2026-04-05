@@ -77,8 +77,8 @@ export const Dashboard: React.FC = () => {
           <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
             <Banknote className="w-6 h-6" />
           </div>
-          <h3 className="font-semibold text-dark-900 mb-2">Auxilio / aporte</h3>
-          <p className="text-sm text-dark-600">Apoya a la barra con un aporte seguro</p>
+          <h3 className="font-semibold text-dark-900 mb-2">Finanzas</h3>
+          <p className="text-sm text-dark-600">Donaciones Mercado Pago y transparencia de gastos</p>
         </Link>
 
         <Link

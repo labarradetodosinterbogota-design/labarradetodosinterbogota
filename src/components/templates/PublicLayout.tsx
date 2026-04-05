@@ -57,6 +57,13 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
                 Cantos
               </Link>
               <Link
+                to="/donaciones"
+                className="text-white hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
+              >
+                Donaciones
+              </Link>
+              <Link
                 to="/calendar"
                 className="text-white hover:text-primary-400 transition-colors"
                 onClick={closeMenu}
@@ -110,6 +117,11 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
                 <li>
                   <Link to="/calendar" className="hover:text-primary-400">
                     Calendario
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/donaciones" className="hover:text-primary-400">
+                    Donaciones
                   </Link>
                 </li>
               </ul>

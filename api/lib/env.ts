@@ -67,3 +67,35 @@ export function requireTwilioEnv(): z.infer<typeof twilioSchema> {
 export function getCronSecret(): string | undefined {
   return process.env.CRON_SECRET?.trim() || undefined;
 }
+
+const mercadopagoSchema = z.object({
+  MERCADOPAGO_ACCESS_TOKEN: z.string().min(10),
+});
+
+export type MercadoPagoEnv = z.infer<typeof mercadopagoSchema>;
+
+export function requireMercadoPagoEnv(): MercadoPagoEnv {
+  const parsed = mercadopagoSchema.safeParse(process.env);
+  if (!parsed.success) {
+    throw new Error('Missing or invalid MERCADOPAGO_ACCESS_TOKEN');
+  }
+  return parsed.data;
+}
+
+/** URL pública de la app (webhooks y back_urls). Ej. https://tu-dominio.vercel.app */
+export function getAppBaseUrl(): string {
+  const explicit = process.env.APP_BASE_URL?.trim();
+  if (explicit) {
+    return explicit.replace(/\/$/, '');
+  }
+  const vercel = process.env.VERCEL_URL?.trim();
+  if (vercel) {
+    const host = vercel.replace(/^https?:\/\//, '');
+    return `https://${host}`;
+  }
+  return 'http://127.0.0.1:3000';
+}
+
+export function getMercadoPagoWebhookSecret(): string | undefined {
+  return process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim() || undefined;
+}

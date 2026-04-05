@@ -66,6 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         const { error } = await supabase.from('contributions').upsert(
           {
             user_id: userId,
+            provider: 'stripe',
             stripe_checkout_session_id: session.id,
             stripe_payment_intent_id: pi,
             amount_cents: session.amount_total ?? 0,

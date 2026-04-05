@@ -10,6 +10,7 @@ import { Home } from './pages/public/Home';
 import { ChantsLibrary } from './pages/public/ChantsLibrary';
 import { Calendar } from './pages/public/Calendar';
 import { History } from './pages/public/History';
+import { Donations } from './pages/public/Donations';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { PendingApproval } from './pages/auth/PendingApproval';
@@ -97,6 +98,7 @@ export const Router: React.FC = () => {
         <Route path="/chants" element={<PublicLayout><ChantsLibrary /></PublicLayout>} />
         <Route path="/calendar" element={<PublicLayout><Calendar /></PublicLayout>} />
         <Route path="/history" element={<PublicLayout><History /></PublicLayout>} />
+        <Route path="/donaciones" element={<PublicLayout><Donations /></PublicLayout>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/cuenta-pendiente" element={<PendingApproval />} />

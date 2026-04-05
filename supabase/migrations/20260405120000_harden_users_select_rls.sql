@@ -9,11 +9,13 @@
 
 DROP POLICY IF EXISTS "Users can view public user info" ON users;
 
+DROP POLICY IF EXISTS "Users can read own profile row" ON users;
 CREATE POLICY "Users can read own profile row"
   ON users FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Active members can read active member rows" ON users;
 CREATE POLICY "Active members can read active member rows"
   ON users FOR SELECT
   TO authenticated
