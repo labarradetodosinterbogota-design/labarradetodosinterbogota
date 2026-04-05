@@ -11,6 +11,10 @@
       "source": "/api/payments/create-mercadopago-preference",
       "destination": "/api/gateway?e=create-mercadopago-preference"
     },
+    {
+      "source": "/api/auth/bootstrap-pending-member",
+      "destination": "/api/gateway?e=bootstrap-pending-member"
+    },
     { "source": "/api/sms/send", "destination": "/api/gateway?e=sms-send" },
     { "source": "/api/jobs/aggregate-stats", "destination": "/api/gateway?e=aggregate-stats" },
     { "source": "/api/email/send-broadcast", "destination": "/api/gateway?e=send-broadcast" },

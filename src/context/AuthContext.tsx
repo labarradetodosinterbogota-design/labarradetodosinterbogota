@@ -3,6 +3,7 @@ import type { Session, User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { User, UserStatus } from '../types';
 import { supabase } from '../services/supabaseClient';
 import { uploadFanVerificationPhoto, FAN_VERIFICATION_BUCKET } from '../services/fanVerificationStorage';
+import { bootstrapPendingMemberRegistration } from '../services/registrationBootstrapClient';
 
 export interface SignUpPayload {
   email: string;
@@ -66,6 +67,28 @@ function mapSignUpErrorMessage(error: unknown): string {
     status === 429 || normalized.includes('email rate limit exceeded') || normalized.includes('rate limit');
   if (isEmailRateLimit) {
     return 'Se alcanzó temporalmente el límite de correos de verificación. Espera unos minutos e intenta nuevamente.';
+  }
+
+  return message;
+}
+
+function mapSignInErrorMessage(error: unknown): string {
+  const fallback = 'No se pudo iniciar sesión.';
+  const message = extractErrorMessage(error, fallback);
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes('email not confirmed')) {
+    return 'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada y spam.';
+  }
+
+  if (normalized.includes('invalid login credentials')) {
+    return 'Correo o contraseña incorrectos.';
+  }
+
+  const status = extractErrorStatus(error);
+  const isRateLimit = status === 429 || normalized.includes('too many requests') || normalized.includes('rate limit');
+  if (isRateLimit) {
+    return 'Demasiados intentos de inicio de sesión. Espera un momento e intenta nuevamente.';
   }
 
   return message;
@@ -213,23 +236,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = useCallback(async (payload: SignUpPayload) => {
     setError(null);
     const { email, password, fullName, phone, verificationPhoto } = payload;
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
+    const normalizedFullName = fullName.trim();
     const emailRedirectTo = resolveSignUpEmailRedirectUrl();
 
     try {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
           ...(emailRedirectTo ? { emailRedirectTo } : {}),
           data: {
-            full_name: fullName.trim(),
-            phone: phone.trim(),
+            full_name: normalizedFullName,
+            phone: normalizedPhone,
           },
         },
       });
 
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error('No se pudo completar el registro.');
+
+      if (!authData.session) {
+        await bootstrapPendingMemberRegistration({
+          userId: authData.user.id,
+          email: normalizedEmail,
+          fullName: normalizedFullName,
+          phone: normalizedPhone,
+        });
+      }
 
       const session = await resolveSignUpSession(authData.session);
 
@@ -242,9 +277,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('users')
         .insert({
           id: userId,
-          email,
-          phone: phone.trim(),
-          full_name: fullName.trim(),
+          email: normalizedEmail,
+          phone: normalizedPhone,
+          full_name: normalizedFullName,
           member_id: memberId,
           status: 'pending',
           fan_verification_storage_path: storagePath,
@@ -296,13 +331,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } = await supabase.auth.getUser();
       if (!authUser?.id) return null;
 
+      if (authUser.email) {
+        const metadata = (authUser.user_metadata ?? {}) as Record<string, unknown>;
+        const metadataFullName =
+          toNullableString(metadata.full_name)?.trim() || fallbackFullNameFromEmail(authUser.email);
+        const metadataPhone = toNullableString(metadata.phone)?.trim() || '';
+        try {
+          await bootstrapPendingMemberRegistration({
+            userId: authUser.id,
+            email: authUser.email,
+            fullName: metadataFullName,
+            phone: metadataPhone,
+          });
+        } catch (bootstrapError) {
+          if (import.meta.env.DEV) {
+            console.error('Sign in bootstrap warning:', bootstrapError);
+          }
+        }
+      }
+
       const normalized = await ensureUserRowForAuthUser(authUser);
       setUser(normalized);
       return normalized;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'No se pudo iniciar sesión.';
+      const message = mapSignInErrorMessage(err);
       setError(message);
-      throw err;
+      if (err instanceof Error && err.message === message) {
+        throw err;
+      }
+      throw new Error(message);
     }
   }, []);
 

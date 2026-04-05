@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { readRequestBodyBuffer } from '../server/lib/readBody.js';
 import { json } from '../server/lib/http.js';
 import { handleAggregateStats } from '../server/handlers/aggregateStats.js';
+import { handleBootstrapPendingMember } from '../server/handlers/bootstrapPendingMember.js';
 import { handleCreateCheckoutSession } from '../server/handlers/createCheckoutSession.js';
 import { handleCreateMercadoPagoPreference } from '../server/handlers/createMercadoPagoPreference.js';
 import { handleMercadoPagoWebhook } from '../server/handlers/mercadopagoWebhook.js';
@@ -63,6 +64,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     case 'send-broadcast':
       await handleSendBroadcast(req, res, bodyBuf);
+      return;
+    case 'bootstrap-pending-member':
+      await handleBootstrapPendingMember(req, res, bodyBuf);
       return;
     default:
       json(res, 404, { error: 'not_found', message: 'Unknown route' });
