@@ -82,7 +82,6 @@ export function requireMercadoPagoEnv(): MercadoPagoEnv {
   return parsed.data;
 }
 
-/** URL pública de la app (webhooks y back_urls). Ej. https://tu-dominio.vercel.app */
 export function getAppBaseUrl(): string {
   const explicit = process.env.APP_BASE_URL?.trim();
   if (explicit) {

@@ -11,17 +11,19 @@ export interface MercadoPagoPaymentInfo {
   currency_id: string | null;
 }
 
-export async function createMercadoPagoPreference(input: Readonly<{
-  accessToken: string;
-  externalReference: string;
-  amountCop: number;
-  title: string;
-  notificationUrl: string;
-  successUrl: string;
-  failureUrl: string;
-  pendingUrl: string;
-  payerEmail?: string;
-}>): Promise<MercadoPagoPreferenceResult> {
+export async function createMercadoPagoPreference(
+  input: Readonly<{
+    accessToken: string;
+    externalReference: string;
+    amountCop: number;
+    title: string;
+    notificationUrl: string;
+    successUrl: string;
+    failureUrl: string;
+    pendingUrl: string;
+    payerEmail?: string;
+  }>
+): Promise<MercadoPagoPreferenceResult> {
   const body: Record<string, unknown> = {
     items: [
       {

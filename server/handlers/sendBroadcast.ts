@@ -4,7 +4,7 @@ import { getUserFromBearer, isCoordinatorAdmin } from '../lib/auth.js';
 import { requireSmtpEnv } from '../lib/env.js';
 import { json } from '../lib/http.js';
 import { sendMarketingEmail } from '../lib/mailer.js';
-import { getJsonBody } from '../lib/parseBody.js';
+import { parseJsonBuffer } from '../lib/parseBody.js';
 
 const MAX_RECIPIENTS = 80;
 
@@ -15,7 +15,11 @@ const bodySchema = z.object({
   text: z.string().max(500_000).optional(),
 });
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export async function handleSendBroadcast(
+  req: VercelRequest,
+  res: VercelResponse,
+  rawBody: Buffer
+): Promise<void> {
   if (req.method !== 'POST') {
     res.status(405).end('Method Not Allowed');
     return;
@@ -40,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  const parsed = bodySchema.safeParse(getJsonBody(req));
+  const parsed = bodySchema.safeParse(parseJsonBuffer(rawBody));
   if (!parsed.success) {
     json(res, 400, { error: 'invalid_body', details: parsed.error.flatten() });
     return;

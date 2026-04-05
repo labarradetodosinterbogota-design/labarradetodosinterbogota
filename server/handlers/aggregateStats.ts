@@ -4,11 +4,7 @@ import { getCronSecret } from '../lib/env.js';
 import { json } from '../lib/http.js';
 import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 
-/**
- * Agregaciones pesadas en servidor (no exponer lógica sensible al cliente).
- * Autorización: CRON_SECRET (Vercel Cron) o JWT de coordinator_admin.
- */
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export async function handleAggregateStats(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.status(405).end('Method Not Allowed');
     return;

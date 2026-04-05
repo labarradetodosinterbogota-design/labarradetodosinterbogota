@@ -5,27 +5,11 @@ import { getStripe } from '../lib/stripe.js';
 import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 import { json } from '../lib/http.js';
 
-/** Si despliegas con Next.js, desactiva el parser del body aquí; en Vercel + `/api` puede aplicarse según runtime. */
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-function readRequestBody(req: VercelRequest): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on('data', (chunk: string | Buffer) => {
-      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-    });
-    req.on('end', () => {
-      resolve(Buffer.concat(chunks));
-    });
-    req.on('error', reject);
-  });
-}
-
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export async function handleStripeWebhook(
+  req: VercelRequest,
+  res: VercelResponse,
+  rawBody: Buffer
+): Promise<void> {
   if (req.method !== 'POST') {
     res.status(405).end('Method Not Allowed');
     return;
@@ -40,7 +24,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   let event: Stripe.Event;
   try {
-    const rawBody = await readRequestBody(req);
     if (rawBody.length === 0) {
       res.status(400).end('Empty body');
       return;

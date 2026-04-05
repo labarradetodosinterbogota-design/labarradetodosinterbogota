@@ -4,7 +4,7 @@ import { getUserFromBearer } from '../lib/auth.js';
 import { getAppBaseUrl, getMercadoPagoWebhookSecret, requireMercadoPagoEnv } from '../lib/env.js';
 import { json } from '../lib/http.js';
 import { createMercadoPagoPreference } from '../lib/mercadopagoApi.js';
-import { getJsonBody } from '../lib/parseBody.js';
+import { parseJsonBuffer } from '../lib/parseBody.js';
 import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 
 const bodySchema = z.object({
@@ -22,7 +22,11 @@ function sanitizeDonorName(raw: string | undefined): string | null {
   return t.length > 0 ? t : null;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export async function handleCreateMercadoPagoPreference(
+  req: VercelRequest,
+  res: VercelResponse,
+  rawBody: Buffer
+): Promise<void> {
   if (req.method !== 'POST') {
     res.status(405).end('Method Not Allowed');
     return;
@@ -35,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  const raw = getJsonBody(req);
+  const raw = parseJsonBuffer(rawBody);
   const parsed = bodySchema.safeParse(raw);
   if (!parsed.success) {
     json(res, 400, { error: 'invalid_body', details: parsed.error.flatten() });

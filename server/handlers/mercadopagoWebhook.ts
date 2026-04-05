@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getMercadoPagoWebhookSecret, requireMercadoPagoEnv } from '../lib/env.js';
 import { json } from '../lib/http.js';
+import { parseJsonBuffer } from '../lib/parseBody.js';
 import { extractMercadoPagoPaymentIdFromWebhook, getMercadoPagoPayment } from '../lib/mercadopagoApi.js';
-import { getJsonBody } from '../lib/parseBody.js';
 import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 
 function readSecretQuery(req: VercelRequest): string {
@@ -20,7 +20,11 @@ function validateWebhookSecret(req: VercelRequest): boolean {
   return readSecretQuery(req) === expected;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export async function handleMercadoPagoWebhook(
+  req: VercelRequest,
+  res: VercelResponse,
+  rawBody: Buffer
+): Promise<void> {
   if (req.method !== 'POST') {
     res.status(405).end('Method Not Allowed');
     return;
@@ -38,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  const body = getJsonBody(req);
+  const body = parseJsonBuffer(rawBody);
   const paymentId = extractMercadoPagoPaymentIdFromWebhook(body);
   if (!paymentId) {
     json(res, 200, { received: true, ignored: true });

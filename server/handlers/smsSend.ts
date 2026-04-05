@@ -4,14 +4,18 @@ import twilio from 'twilio';
 import { getUserFromBearer, isCoordinatorAdmin } from '../lib/auth.js';
 import { requireTwilioEnv } from '../lib/env.js';
 import { json } from '../lib/http.js';
-import { getJsonBody } from '../lib/parseBody.js';
+import { parseJsonBuffer } from '../lib/parseBody.js';
 
 const bodySchema = z.object({
   to: z.string().min(8).max(20),
   body: z.string().min(1).max(1400),
 });
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export async function handleSmsSend(
+  req: VercelRequest,
+  res: VercelResponse,
+  rawBody: Buffer
+): Promise<void> {
   if (req.method !== 'POST') {
     res.status(405).end('Method Not Allowed');
     return;
@@ -36,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  const parsed = bodySchema.safeParse(getJsonBody(req));
+  const parsed = bodySchema.safeParse(parseJsonBuffer(rawBody));
   if (!parsed.success) {
     json(res, 400, { error: 'invalid_body', details: parsed.error.flatten() });
     return;

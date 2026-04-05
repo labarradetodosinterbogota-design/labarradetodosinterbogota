@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { User, UserStatus } from '../types';
 import { supabase } from '../services/supabaseClient';
 import { uploadFanVerificationPhoto, FAN_VERIFICATION_BUCKET } from '../services/fanVerificationStorage';
@@ -27,6 +28,30 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+async function resolveSignUpSession(
+  email: string,
+  password: string,
+  initialSession: Session | null
+): Promise<Session> {
+  if (initialSession?.user) {
+    return initialSession;
+  }
+
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (signInError) {
+    throw new Error(
+      'Cuenta creada. Si debes confirmar el correo, hazlo y luego inicia sesión para completar el registro.'
+    );
+  }
+  if (!signInData.session?.user) {
+    throw new Error('No hay sesión activa. Confirma tu correo e inicia sesión.');
+  }
+  return signInData.session;
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -87,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signUp = async (payload: SignUpPayload) => {
+  const signUp = useCallback(async (payload: SignUpPayload) => {
     setError(null);
     const { email, password, fullName, phone, verificationPhoto } = payload;
 
@@ -100,32 +125,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error('No se pudo completar el registro.');
 
-      let session = authData.session;
-      if (!session) {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (signInError) {
-          throw new Error(
-            'Cuenta creada. Si debes confirmar el correo, hazlo y luego inicia sesión para completar el registro.'
-          );
-        }
-        session = signInData.session;
-      }
-
-      if (!session?.user) {
-        throw new Error('No hay sesión activa. Confirma tu correo e inicia sesión.');
-      }
+      const session = await resolveSignUpSession(email, password, authData.session);
 
       const userId = session.user.id;
-      let storagePath: string | null = null;
-
-      try {
-        storagePath = await uploadFanVerificationPhoto(userId, verificationPhoto);
-      } catch (uploadErr) {
-        throw uploadErr instanceof Error ? uploadErr : new Error('No se pudo subir la foto de verificación.');
-      }
+      const storagePath = await uploadFanVerificationPhoto(userId, verificationPhoto);
 
       const memberId = `INTER-${Date.now()}`;
 
@@ -164,9 +167,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(message);
       throw err;
     }
-  };
+  }, []);
 
-  const signIn = async (email: string, password: string): Promise<User | null> => {
+  const signIn = useCallback(async (email: string, password: string): Promise<User | null> => {
     setError(null);
     try {
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -196,9 +199,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(message);
       throw err;
     }
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser();
@@ -213,9 +216,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .maybeSingle();
     if (fetchError) throw fetchError;
     setUser(normalizeUserRow(data));
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     setError(null);
     try {
       const { error: signOutError } = await supabase.auth.signOut();
@@ -226,48 +229,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(message);
       throw err;
     }
-  };
+  }, []);
 
-  const canAccessPrivateArea = !!user && user.status === UserStatus.ACTIVE;
+  const canAccessPrivateArea = useMemo(() => !!user && user.status === UserStatus.ACTIVE, [user]);
+  const contextValue = useMemo<AuthContextType>(
+    () => ({
+      user,
+      isLoading,
+      error,
+      signUp,
+      signIn,
+      signOut,
+      isAuthenticated: !!user,
+      canAccessPrivateArea,
+      refreshProfile,
+    }),
+    [user, isLoading, error, signUp, signIn, signOut, canAccessPrivateArea, refreshProfile]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        error,
-        signUp,
-        signIn,
-        signOut,
-        isAuthenticated: !!user,
-        canAccessPrivateArea,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+function toStringValue(value: unknown, fallback = ''): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return fallback;
+}
+
+function toNullableString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return null;
+}
+
 function normalizeUserRow(data: unknown): User | null {
   if (!data || typeof data !== 'object') return null;
   const row = data as Record<string, unknown>;
   return {
-    id: String(row.id),
-    email: String(row.email),
-    phone: row.phone != null ? String(row.phone) : null,
-    full_name: String(row.full_name),
-    photo_url: row.photo_url != null ? String(row.photo_url) : null,
-    fan_verification_storage_path:
-      row.fan_verification_storage_path != null
-        ? String(row.fan_verification_storage_path)
-        : null,
-    member_id: String(row.member_id),
-    join_date: String(row.join_date),
+    id: toStringValue(row.id),
+    email: toStringValue(row.email),
+    phone: toNullableString(row.phone),
+    full_name: toStringValue(row.full_name),
+    photo_url: toNullableString(row.photo_url),
+    fan_verification_storage_path: toNullableString(row.fan_verification_storage_path),
+    member_id: toStringValue(row.member_id),
+    join_date: toStringValue(row.join_date),
     role: row.role as User['role'],
     status: row.status as User['status'],
-    created_at: String(row.created_at),
-    updated_at: String(row.updated_at),
+    created_at: toStringValue(row.created_at),
+    updated_at: toStringValue(row.updated_at),
   };
 }
 

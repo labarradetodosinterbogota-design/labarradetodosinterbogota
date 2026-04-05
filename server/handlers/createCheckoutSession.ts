@@ -4,7 +4,7 @@ import { getUserFromBearer } from '../lib/auth.js';
 import { json } from '../lib/http.js';
 import { getStripe, getDefaultCurrency } from '../lib/stripe.js';
 import { requireStripeEnv } from '../lib/env.js';
-import { getJsonBody } from '../lib/parseBody.js';
+import { parseJsonBuffer } from '../lib/parseBody.js';
 
 const bodySchema = z.object({
   amountCop: z.number().int().min(3_000).max(200_000_000),
@@ -12,7 +12,11 @@ const bodySchema = z.object({
   cancelUrl: z.string().url(),
 });
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export async function handleCreateCheckoutSession(
+  req: VercelRequest,
+  res: VercelResponse,
+  rawBody: Buffer
+): Promise<void> {
   if (req.method !== 'POST') {
     res.status(405).end('Method Not Allowed');
     return;
@@ -31,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  const raw = getJsonBody(req);
+  const raw = parseJsonBuffer(rawBody);
   const parsed = bodySchema.safeParse(raw);
   if (!parsed.success) {
     json(res, 400, { error: 'invalid_body', details: parsed.error.flatten() });
