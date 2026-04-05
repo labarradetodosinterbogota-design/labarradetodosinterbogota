@@ -4,6 +4,10 @@ import { Button, Alert, Spinner } from '../../components/atoms';
 import { PublicLayout } from '../../components/templates';
 import { useAuth } from '../../context/AuthContext';
 import { uploadFanVerificationPhoto } from '../../services/fanVerificationStorage';
+import {
+  clearPendingVerificationDraft,
+  readPendingVerificationDraft,
+} from '../../services/pendingVerificationDraft';
 import { supabase } from '../../services/supabaseClient';
 import { UserStatus } from '../../types';
 
@@ -11,6 +15,7 @@ export const PendingApproval: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoading, signOut, refreshProfile, canAccessPrivateArea } = useAuth();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const autoUploadAttemptedRef = React.useRef(false);
   const [busy, setBusy] = React.useState(false);
   const [uploadingPhoto, setUploadingPhoto] = React.useState(false);
   const [msg, setMsg] = React.useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -34,6 +39,70 @@ export const PendingApproval: React.FC = () => {
     }
   };
 
+  const uploadVerificationPhoto = React.useCallback(
+    async (file: File, source: 'manual' | 'draft') => {
+      if (!user) {
+        throw new Error('Inicia sesión para subir la foto de verificación.');
+      }
+
+      const storagePath = await uploadFanVerificationPhoto(user.id, file);
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          fan_verification_storage_path: storagePath,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      await refreshProfile();
+      try {
+        await clearPendingVerificationDraft(user.email);
+      } catch {
+        // Evita que un fallo de almacenamiento local afecte la subida exitosa.
+      }
+      if (source === 'manual' && fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      setMsg({
+        type: 'success',
+        text:
+          source === 'draft'
+            ? 'Recuperamos y enviamos automáticamente tu foto de verificación para revisión de coordinación.'
+            : 'Foto de verificación enviada correctamente. Ya puede ser revisada por coordinación.',
+      });
+    },
+    [refreshProfile, user]
+  );
+
+  React.useEffect(() => {
+    if (!user || isLoading) return;
+    if (user.status !== UserStatus.PENDING) return;
+    if (user.fan_verification_storage_path) return;
+    if (autoUploadAttemptedRef.current) return;
+
+    autoUploadAttemptedRef.current = true;
+
+    void (async () => {
+      try {
+        const draft = await readPendingVerificationDraft(user.email);
+        if (!draft) return;
+        setMsg(null);
+        setUploadingPhoto(true);
+        await uploadVerificationPhoto(draft, 'draft');
+      } catch (error) {
+        setMsg({
+          type: 'error',
+          text: error instanceof Error ? error.message : 'No se pudo enviar la foto guardada. Intenta de nuevo.',
+        });
+      } finally {
+        setUploadingPhoto(false);
+      }
+    })();
+  }, [isLoading, uploadVerificationPhoto, user]);
+
   const handleUploadVerificationPhoto = async () => {
     if (!user) return;
     const file = fileInputRef.current?.files?.[0];
@@ -45,22 +114,7 @@ export const PendingApproval: React.FC = () => {
     setMsg(null);
     setUploadingPhoto(true);
     try {
-      const storagePath = await uploadFanVerificationPhoto(user.id, file);
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({
-          fan_verification_storage_path: storagePath,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-      if (updateError) throw updateError;
-
-      await refreshProfile();
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      setMsg({
-        type: 'success',
-        text: 'Foto de verificación enviada correctamente. Ya puede ser revisada por coordinación.',
-      });
+      await uploadVerificationPhoto(file, 'manual');
     } catch (error) {
       setMsg({
         type: 'error',
@@ -84,11 +138,13 @@ export const PendingApproval: React.FC = () => {
   if (!user) {
     return (
       <PublicLayout>
-        <div className="mx-auto max-w-md py-12 text-center">
-          <p className="text-dark-600 mb-4">Inicia sesión para ver el estado de tu solicitud.</p>
-          <Link to="/login" className="text-primary-400 font-medium">
-            Ir a iniciar sesión
-          </Link>
+        <div className="mx-auto max-w-md py-12">
+          <div className="rounded-lg border border-dark-200 bg-white p-8 text-center">
+            <p className="text-dark-600 mb-4">Inicia sesión para ver el estado de tu solicitud.</p>
+            <Link to="/login" className="text-primary-400 font-medium">
+              Ir a iniciar sesión
+            </Link>
+          </div>
         </div>
       </PublicLayout>
     );
@@ -97,25 +153,27 @@ export const PendingApproval: React.FC = () => {
   if (user.status === UserStatus.INACTIVE) {
     return (
       <PublicLayout>
-        <div className="mx-auto max-w-md py-12 text-center space-y-4">
-          <p className="text-dark-600">
-            Tu solicitud no fue aprobada o tu cuenta está inactiva. Si crees que es un error, contacta a un
-            coordinador.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              signOut().catch(() => {});
-            }}
-          >
-            Cerrar sesión
-          </Button>
-          <p>
-            <Link to="/" className="text-primary-400 font-medium">
-              Volver al inicio
-            </Link>
-          </p>
+        <div className="mx-auto max-w-md py-12">
+          <div className="rounded-lg border border-dark-200 bg-white p-8 text-center space-y-4">
+            <p className="text-dark-600">
+              Tu solicitud no fue aprobada o tu cuenta está inactiva. Si crees que es un error, contacta a un
+              coordinador.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                signOut().catch(() => {});
+              }}
+            >
+              Cerrar sesión
+            </Button>
+            <p>
+              <Link to="/" className="text-primary-400 font-medium">
+                Volver al inicio
+              </Link>
+            </p>
+          </div>
         </div>
       </PublicLayout>
     );
@@ -124,11 +182,13 @@ export const PendingApproval: React.FC = () => {
   if (user.status !== UserStatus.PENDING) {
     return (
       <PublicLayout>
-        <div className="mx-auto max-w-md py-12 text-center">
-          <p className="text-dark-600 mb-4">Tu cuenta no está en revisión.</p>
-          <Link to="/" className="text-primary-400 font-medium">
-            Volver al inicio
-          </Link>
+        <div className="mx-auto max-w-md py-12">
+          <div className="rounded-lg border border-dark-200 bg-white p-8 text-center">
+            <p className="text-dark-600 mb-4">Tu cuenta no está en revisión.</p>
+            <Link to="/" className="text-primary-400 font-medium">
+              Volver al inicio
+            </Link>
+          </div>
         </div>
       </PublicLayout>
     );

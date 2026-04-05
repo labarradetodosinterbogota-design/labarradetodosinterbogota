@@ -5,6 +5,10 @@ import { Button, Input, Alert } from '../../components/atoms';
 import { PublicLayout } from '../../components/templates';
 import { useAuth } from '../../context/AuthContext';
 import { BAR_OFFICIAL_NAME } from '../../constants/brand';
+import {
+  clearPendingVerificationDraft,
+  savePendingVerificationDraft,
+} from '../../services/pendingVerificationDraft';
 
 interface RegisterFormData {
   fullName: string;
@@ -43,6 +47,7 @@ export const Register: React.FC = () => {
     if (submitLockRef.current) return;
     setFeedback(null);
     const file = fileInputRef.current?.files?.[0];
+    const email = data.email.trim();
     if (!file) {
       setFeedback({
         type: 'error',
@@ -54,13 +59,23 @@ export const Register: React.FC = () => {
     submitLockRef.current = true;
     setIsLoading(true);
     try {
+      try {
+        await savePendingVerificationDraft(email, file);
+      } catch {
+        // Si IndexedDB no está disponible, el flujo de registro continúa normalmente.
+      }
       await signUp({
-        email: data.email.trim(),
+        email,
         password: data.password,
         fullName: data.fullName.trim(),
         phone: data.phone.trim(),
         verificationPhoto: file,
       });
+      try {
+        await clearPendingVerificationDraft(email);
+      } catch {
+        // No bloquea navegación si no se puede limpiar el borrador local.
+      }
       navigate('/cuenta-pendiente', { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'No se pudo completar el registro.';
