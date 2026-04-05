@@ -90,13 +90,39 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
+const CalendarAccessRoute: React.FC = () => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (user?.status === UserStatus.ACTIVE) {
+    return (
+      <PrivateLayout>
+        <Calendar variant="private" />
+      </PrivateLayout>
+    );
+  }
+
+  return (
+    <PublicLayout>
+      <Calendar variant="public" />
+    </PublicLayout>
+  );
+};
+
 export const Router: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
         <Route path="/chants" element={<PublicLayout><ChantsLibrary /></PublicLayout>} />
-        <Route path="/calendar" element={<PublicLayout><Calendar /></PublicLayout>} />
+        <Route path="/calendar" element={<CalendarAccessRoute />} />
         <Route path="/history" element={<PublicLayout><History /></PublicLayout>} />
         <Route path="/donaciones" element={<PublicLayout><Donations /></PublicLayout>} />
         <Route path="/login" element={<Login />} />
@@ -133,16 +159,7 @@ export const Router: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/events"
-          element={
-            <ProtectedRoute>
-              <PrivateLayout>
-                <Calendar />
-              </PrivateLayout>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/events" element={<Navigate to="/calendar" replace />} />
         <Route
           path="/documents"
           element={

@@ -76,7 +76,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
                 <span>Votaciones</span>
               </Link>
               <Link
-                to="/events"
+                to="/calendar"
                 className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
                 onClick={closeMenu}
               >

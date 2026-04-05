@@ -3,15 +3,26 @@ import { EventCard } from '../../components/molecules';
 import { Spinner, Alert } from '../../components/atoms';
 import { useUpcomingEvents } from '../../hooks';
 
-export const Calendar: React.FC = () => {
+interface CalendarProps {
+  variant?: 'public' | 'private';
+}
+
+export const Calendar: React.FC<CalendarProps> = ({ variant = 'public' }) => {
   const [page, setPage] = useState(1);
   const { data, isLoading, error } = useUpcomingEvents(page);
+  const isPrivate = variant === 'private';
+  const hasEvents = (data?.data?.length ?? 0) > 0;
+  const headerClass = isPrivate
+    ? 'bg-white rounded-lg border border-dark-200 p-6'
+    : 'rounded-2xl border border-white/10 bg-dark-900/90 px-6 py-8 shadow-lg backdrop-blur-sm';
+  const titleClass = isPrivate ? 'text-4xl font-bold text-dark-900 mb-2' : 'text-4xl font-bold text-white mb-2';
+  const subtitleClass = isPrivate ? 'text-dark-600' : 'text-lg text-dark-200';
 
   return (
     <div className="space-y-6">
-      <header className="rounded-2xl border border-white/10 bg-dark-900/90 px-6 py-8 shadow-lg backdrop-blur-sm">
-        <h1 className="text-4xl font-bold text-white mb-2">Calendario</h1>
-        <p className="text-lg text-dark-200">
+      <header className={headerClass}>
+        <h1 className={titleClass}>Calendario</h1>
+        <p className={subtitleClass}>
           Próximos partidos, ensayos y eventos de la barra
         </p>
       </header>
@@ -20,19 +31,21 @@ export const Calendar: React.FC = () => {
         <Alert type="error" message="No se pudo cargar el calendario. Intenta de nuevo." />
       )}
 
-      {isLoading ? (
+      {isLoading && (
         <div className="flex justify-center py-12">
           <Spinner size="lg" />
         </div>
-      ) : data?.data && data.data.length > 0 ? (
+      )}
+
+      {!isLoading && hasEvents && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {data.data.map((event) => (
+            {data?.data?.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}
           </div>
 
-          {data.total_pages > 1 && (
+          {(data?.total_pages ?? 0) > 1 && (
             <div className="flex justify-center gap-2 mt-8">
               <button
                 type="button"
@@ -43,12 +56,12 @@ export const Calendar: React.FC = () => {
                 Anterior
               </button>
               <span className="px-4 py-2 text-dark-900">
-                Página {page} de {data.total_pages}
+                Página {page} de {data?.total_pages}
               </span>
               <button
                 type="button"
-                onClick={() => setPage(Math.min(data.total_pages, page + 1))}
-                disabled={page === data.total_pages}
+                onClick={() => setPage(Math.min(data?.total_pages ?? page, page + 1))}
+                disabled={page === (data?.total_pages ?? page)}
                 className="rounded-lg border border-dark-200 px-4 py-2 text-dark-900 disabled:opacity-50"
               >
                 Siguiente
@@ -56,7 +69,9 @@ export const Calendar: React.FC = () => {
             </div>
           )}
         </>
-      ) : (
+      )}
+
+      {!isLoading && !hasEvents && (
         <div className="rounded-xl border border-dark-200 bg-white/95 px-6 py-12 text-center shadow-sm backdrop-blur-sm">
           <p className="text-lg text-dark-900">No hay eventos próximos por ahora</p>
         </div>

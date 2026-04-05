@@ -60,7 +60,7 @@ export const Dashboard: React.FC = () => {
         </Link>
 
         <Link
-          to="/events"
+          to="/calendar"
           className="bg-white rounded-lg border border-dark-200 p-6 hover:shadow-lg transition-shadow group"
         >
           <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-400 flex items-center justify-center mb-3 group-hover:bg-purple-400 group-hover:text-white transition-colors">
