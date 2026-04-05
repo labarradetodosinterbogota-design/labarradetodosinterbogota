@@ -10,7 +10,7 @@ export const Donations: React.FC = () => {
   const pending = params.get('pending') === '1';
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto">
+    <div className="space-y-8">
       {thanks && (
         <Alert
           type="success"

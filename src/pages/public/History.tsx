@@ -3,7 +3,7 @@ import { BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 export const History: React.FC = () => {
   return (
-    <div className="space-y-12 max-w-3xl mx-auto">
+    <div className="space-y-12">
       <header className="rounded-2xl border border-white/10 bg-dark-900/90 px-6 py-8 shadow-lg backdrop-blur-sm">
         <h1 className="text-4xl font-bold text-white mb-3">Nuestra historia</h1>
         <p className="text-lg text-dark-200">
