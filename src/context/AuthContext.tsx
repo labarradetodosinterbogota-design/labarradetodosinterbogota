@@ -29,6 +29,48 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && typeof error.message === 'string' && error.message.trim().length > 0) {
+    return error.message;
+  }
+  if (error && typeof error === 'object') {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === 'string' && maybeMessage.trim().length > 0) {
+      return maybeMessage;
+    }
+  }
+  return fallback;
+}
+
+function extractErrorStatus(error: unknown): number | null {
+  if (!error || typeof error !== 'object') return null;
+  const status = (error as { status?: unknown }).status;
+  return typeof status === 'number' ? status : null;
+}
+
+function mapSignUpErrorMessage(error: unknown): string {
+  const fallback = 'No se pudo completar el registro.';
+  const message = extractErrorMessage(error, fallback);
+  const normalized = message.toLowerCase();
+
+  if (message.startsWith('Cuenta creada.')) {
+    return message;
+  }
+
+  if (normalized.includes('user already registered')) {
+    return 'Este correo ya está registrado. Intenta iniciar sesión o recuperar tu contraseña.';
+  }
+
+  const status = extractErrorStatus(error);
+  const isEmailRateLimit =
+    status === 429 || normalized.includes('email rate limit exceeded') || normalized.includes('rate limit');
+  if (isEmailRateLimit) {
+    return 'Se alcanzó temporalmente el límite de correos de verificación. Espera unos minutos e intenta nuevamente.';
+  }
+
+  return message;
+}
+
 async function resolveSignUpSession(
   initialSession: Session | null
 ): Promise<Session> {
@@ -211,9 +253,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(normalizeUserRow(data));
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'No se pudo completar el registro.';
+      if (import.meta.env.DEV) {
+        console.error('Sign up error:', err);
+      }
+      const message = mapSignUpErrorMessage(err);
       setError(message);
-      throw err;
+      if (err instanceof Error && err.message === message) {
+        throw err;
+      }
+      throw new Error(message);
     }
   }, []);
 

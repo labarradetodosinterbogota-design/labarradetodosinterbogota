@@ -30,6 +30,7 @@ export const Register: React.FC = () => {
   const navigate = useNavigate();
   const password = watch('password');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const submitLockRef = useRef(false);
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -39,6 +40,7 @@ export const Register: React.FC = () => {
   }, [authLoading, user, canAccessPrivateArea, navigate]);
 
   const onSubmit = async (data: RegisterFormData) => {
+    if (submitLockRef.current) return;
     setFeedback(null);
     const file = fileInputRef.current?.files?.[0];
     if (!file) {
@@ -49,6 +51,7 @@ export const Register: React.FC = () => {
       return;
     }
 
+    submitLockRef.current = true;
     setIsLoading(true);
     try {
       await signUp({
@@ -65,8 +68,13 @@ export const Register: React.FC = () => {
         setFeedback({ type: 'info', message });
         return;
       }
+      if (message.startsWith('Se alcanzó temporalmente el límite de correos de verificación.')) {
+        setFeedback({ type: 'info', message });
+        return;
+      }
       setFeedback({ type: 'error', message });
     } finally {
+      submitLockRef.current = false;
       setIsLoading(false);
     }
   };

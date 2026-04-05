@@ -6,10 +6,18 @@ import { extractMercadoPagoPaymentIdFromWebhook, getMercadoPagoPayment } from '.
 import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 
 function readSecretQuery(req: VercelRequest): string {
-  const q = req.query.secret;
-  if (typeof q === 'string') return q;
-  if (Array.isArray(q) && typeof q[0] === 'string') return q[0];
-  return '';
+  if (typeof req.url !== 'string' || req.url.length === 0) {
+    return '';
+  }
+
+  try {
+    const url = new URL(req.url, 'http://localhost');
+    const secretValues = url.searchParams.getAll('secret');
+    const first = secretValues[0];
+    return typeof first === 'string' ? first : '';
+  } catch {
+    return '';
+  }
 }
 
 function validateWebhookSecret(req: VercelRequest): boolean {

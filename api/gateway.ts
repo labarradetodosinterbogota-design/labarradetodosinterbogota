@@ -16,10 +16,19 @@ export const config = {
 };
 
 function getEndpointKey(req: VercelRequest): string | null {
-  const q = req.query.e;
-  if (typeof q === 'string' && q.length > 0) return q;
-  if (Array.isArray(q) && typeof q[0] === 'string' && q[0].length > 0) return q[0];
-  return null;
+  if (typeof req.url !== 'string' || req.url.length === 0) {
+    return null;
+  }
+
+  try {
+    const url = new URL(req.url, 'http://localhost');
+    const endpointValues = url.searchParams.getAll('e');
+    const first = endpointValues[0];
+    if (typeof first === 'string' && first.length > 0) return first;
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
