@@ -53,6 +53,8 @@ export interface User {
   phone: string | null;
   full_name: string;
   photo_url: string | null;
+  /** Ruta en Storage (bucket fan-verification) para validar hincha de Inter Bogotá. */
+  fan_verification_storage_path: string | null;
   member_id: string;
   join_date: string;
   role: UserRole;

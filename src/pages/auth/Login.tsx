@@ -1,10 +1,11 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Button, Input, Alert } from '../../components/atoms';
 import { PublicLayout } from '../../components/templates';
 import { useAuth } from '../../context/AuthContext';
 import { BAR_OFFICIAL_NAME } from '../../constants/brand';
+import { UserStatus } from '../../types';
 
 interface LoginFormData {
   email: string;
@@ -17,17 +18,46 @@ export const Login: React.FC = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>();
+  const location = useLocation();
+  const membershipMessage = (location.state as { membershipMessage?: string } | null)?.membershipMessage;
   const [error, setError] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user, canAccessPrivateArea, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (membershipMessage) setError(membershipMessage);
+  }, [membershipMessage]);
+
+  React.useEffect(() => {
+    if (authLoading) return;
+    if (user && canAccessPrivateArea) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    if (user?.status === UserStatus.PENDING) {
+      navigate('/cuenta-pendiente', { replace: true });
+    }
+  }, [authLoading, user, canAccessPrivateArea, navigate]);
 
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
     setIsLoading(true);
     try {
-      await signIn(data.email, data.password);
-      navigate('/dashboard');
+      const profile = await signIn(data.email, data.password);
+      if (!profile) {
+        setError('No se encontró tu perfil de integrante. Contacta a un coordinador.');
+        return;
+      }
+      if (profile.status === UserStatus.PENDING) {
+        navigate('/cuenta-pendiente', { replace: true });
+        return;
+      }
+      if (profile.status === UserStatus.ACTIVE) {
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+      setError('Tu cuenta no está activa. Contacta a un coordinador.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión.');
     } finally {

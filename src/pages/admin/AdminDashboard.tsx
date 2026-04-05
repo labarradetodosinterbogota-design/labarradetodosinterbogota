@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Users, FileText, Vote, Music, Package, Mail } from 'lucide-react';
 import { Button, Input, TextArea, Alert, Spinner } from '../../components/atoms';
-import { GalleryAdminPanel } from '../../components/molecules';
+import { GalleryAdminPanel, PendingMembersPanel } from '../../components/molecules';
 import { supabase } from '../../services/supabaseClient';
 
 export const AdminDashboard: React.FC = () => {
@@ -61,14 +61,19 @@ export const AdminDashboard: React.FC = () => {
         <p className="text-dark-600">Gestión de recursos e integrantes</p>
       </div>
 
+      <PendingMembersPanel />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg border border-dark-200 p-6 hover:shadow-lg transition-shadow">
           <Users className="w-10 h-10 text-primary-400 mb-3" />
           <h3 className="font-semibold text-dark-900 mb-2">Integrantes</h3>
           <p className="text-sm text-dark-600 mb-4">Aprobar, gestionar roles y datos</p>
-          <button type="button" className="text-primary-400 hover:text-primary-500 text-sm font-medium">
-            Gestionar integrantes →
-          </button>
+          <a
+            href="#integrantes-pendientes"
+            className="text-primary-400 hover:text-primary-500 text-sm font-medium inline-block"
+          >
+            Ver solicitudes pendientes →
+          </a>
         </div>
 
         <div className="bg-white rounded-lg border border-dark-200 p-6 hover:shadow-lg transition-shadow">

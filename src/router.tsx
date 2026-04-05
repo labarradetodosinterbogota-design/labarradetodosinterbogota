@@ -1,10 +1,10 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Spinner } from './components/atoms';
+import { UserStatus } from './types';
 
-import { PublicLayout } from './components/templates';
-import { PrivateLayout } from './components/templates';
+import { PublicLayout, PrivateLayout } from './components/templates';
 
 import { Home } from './pages/public/Home';
 import { ChantsLibrary } from './pages/public/ChantsLibrary';
@@ -12,6 +12,7 @@ import { Calendar } from './pages/public/Calendar';
 import { History } from './pages/public/History';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
+import { PendingApproval } from './pages/auth/PendingApproval';
 import { Dashboard } from './pages/private/Dashboard';
 import { Members } from './pages/private/Members';
 import { Voting } from './pages/private/Voting';
@@ -21,8 +22,32 @@ import { MembershipCard } from './pages/private/MembershipCard';
 import { Contribute } from './pages/private/Contribute';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 
+const INACTIVE_ACCESS_MESSAGE =
+  'Tu cuenta no tiene acceso al área privada. Si tu solicitud fue rechazada, contacta a un coordinador.';
+
+const SessionGuardRedirect: React.FC<{ message: string }> = ({ message }) => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    void (async () => {
+      try {
+        await signOut();
+      } finally {
+        navigate('/login', { replace: true, state: { membershipMessage: message } });
+      }
+    })();
+  }, [signOut, navigate, message]);
+
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <Spinner size="lg" />
+    </div>
+  );
+};
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -32,8 +57,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user.status !== UserStatus.ACTIVE) {
+    if (user.status === UserStatus.PENDING) {
+      return <Navigate to="/cuenta-pendiente" replace />;
+    }
+    return <SessionGuardRedirect message={INACTIVE_ACCESS_MESSAGE} />;
   }
 
   return <>{children}</>;
@@ -50,7 +82,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
 
-  if (!user || user.role !== 'coordinator_admin') {
+  if (user?.role !== 'coordinator_admin' || user?.status !== UserStatus.ACTIVE) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -67,6 +99,7 @@ export const Router: React.FC = () => {
         <Route path="/history" element={<PublicLayout><History /></PublicLayout>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/cuenta-pendiente" element={<PendingApproval />} />
 
         <Route
           path="/dashboard"

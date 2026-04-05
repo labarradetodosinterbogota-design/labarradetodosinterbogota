@@ -8,3 +8,4 @@ export { Modal } from './Modal';
 export { Pagination } from './Pagination';
 export { BarraGallerySection } from './BarraGallerySection';
 export { GalleryAdminPanel } from './GalleryAdminPanel';
+export { PendingMembersPanel } from './PendingMembersPanel';
