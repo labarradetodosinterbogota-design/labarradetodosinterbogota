@@ -134,6 +134,16 @@ export const Router: React.FC = () => {
           }
         />
         <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <Calendar />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/documents"
           element={
             <ProtectedRoute>

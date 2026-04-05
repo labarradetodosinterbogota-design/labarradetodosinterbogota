@@ -20,6 +20,8 @@ export const Documents: React.FC = () => {
   );
 
   const { data, isLoading, error } = selectedCategory ? categoryQuery : allDocsQuery;
+  const isAllSelected = selectedCategory === null;
+  const hasDocuments = (data?.data?.length ?? 0) > 0;
 
   const handleDownload = (document: Document) => {
     window.open(document.file_url, '_blank', 'noopener,noreferrer');
@@ -27,7 +29,7 @@ export const Documents: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="bg-white rounded-lg border border-dark-200 p-6">
         <h1 className="text-4xl font-bold text-dark-900 mb-2">Documentos oficiales</h1>
         <p className="text-dark-600">
           Constitución, políticas e informes de transparencia
@@ -42,7 +44,7 @@ export const Documents: React.FC = () => {
             setPage(1);
           }}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            !selectedCategory
+            isAllSelected
               ? 'bg-primary-400 text-white'
               : 'bg-dark-100 text-dark-900 hover:bg-dark-200'
           }`}
@@ -72,14 +74,16 @@ export const Documents: React.FC = () => {
         <Alert type="error" message="No se pudieron cargar los documentos. Intenta de nuevo." />
       )}
 
-      {isLoading ? (
+      {isLoading && (
         <div className="flex justify-center py-12">
           <Spinner size="lg" />
         </div>
-      ) : data?.data && data.data.length > 0 ? (
+      )}
+
+      {!isLoading && hasDocuments && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.data.map((doc) => (
+            {data?.data?.map((doc) => (
               <DocumentCard
                 key={doc.id}
                 document={doc}
@@ -88,7 +92,7 @@ export const Documents: React.FC = () => {
             ))}
           </div>
 
-          {data.total_pages > 1 && (
+          {(data?.total_pages ?? 0) > 1 && (
             <div className="flex justify-center gap-2 mt-8">
               <button
                 type="button"
@@ -99,12 +103,12 @@ export const Documents: React.FC = () => {
                 Anterior
               </button>
               <span className="px-4 py-2">
-                Página {page} de {data.total_pages}
+                Página {page} de {data?.total_pages}
               </span>
               <button
                 type="button"
-                onClick={() => setPage(Math.min(data.total_pages, page + 1))}
-                disabled={page === data.total_pages}
+                onClick={() => setPage(Math.min(data?.total_pages ?? page, page + 1))}
+                disabled={page === (data?.total_pages ?? page)}
                 className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
               >
                 Siguiente
@@ -112,7 +116,9 @@ export const Documents: React.FC = () => {
             </div>
           )}
         </>
-      ) : (
+      )}
+
+      {!isLoading && !hasDocuments && (
         <div className="text-center py-12">
           <p className="text-dark-600 text-lg">No hay documentos disponibles</p>
         </div>

@@ -5,7 +5,7 @@ import { MessageCircle } from 'lucide-react';
 export const Forum: React.FC = () => {
   return (
     <div className="space-y-6">
-      <div>
+      <div className="bg-white rounded-lg border border-dark-200 p-6">
         <h1 className="text-4xl font-bold text-dark-900 mb-2">Foro</h1>
         <p className="text-dark-600">
           Espacio de conversación e ideas entre integrantes

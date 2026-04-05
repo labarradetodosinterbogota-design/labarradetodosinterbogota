@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, Users, FileText, Vote, MessageCircle, Banknote } from 'lucide-react';
+import { Menu, X, LogOut, Users, FileText, Vote, MessageCircle, Banknote, Calendar } from 'lucide-react';
 import { Button, Avatar, BrandMark } from '../atoms';
 import { useAuth } from '../../context/AuthContext';
 import { BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
@@ -74,6 +74,14 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               >
                 <Vote className="w-4 h-4" />
                 <span>Votaciones</span>
+              </Link>
+              <Link
+                to="/events"
+                className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                onClick={closeMenu}
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Eventos</span>
               </Link>
               <Link
                 to="/documents"

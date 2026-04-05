@@ -56,7 +56,7 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="bg-white rounded-lg border border-dark-200 p-6">
         <h1 className="text-4xl font-bold text-dark-900 mb-2">Panel de administración</h1>
         <p className="text-dark-600">Gestión de recursos e integrantes</p>
       </div>

@@ -250,7 +250,7 @@ export const Contribute: React.FC = () => {
 
   return (
     <div className="space-y-10">
-      <div>
+      <div className="bg-white rounded-lg border border-dark-200 p-6">
         <h1 className="text-4xl font-bold text-dark-900 mb-2">Finanzas y transparencia</h1>
         <p className="text-dark-600 max-w-2xl">
           Donaciones procesadas con Mercado Pago y registro de gastos con comprobantes para {BAR_OFFICIAL_NAME}.

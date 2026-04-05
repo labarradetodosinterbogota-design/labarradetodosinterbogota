@@ -9,7 +9,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="bg-white rounded-lg border border-dark-200 p-6">
         <h1 className="text-4xl font-bold text-dark-900 mb-2">Hola, {user?.full_name}.</h1>
         <p className="text-dark-600">Carné de integrante: {user?.member_id}</p>
       </div>
@@ -60,7 +60,7 @@ export const Dashboard: React.FC = () => {
         </Link>
 
         <Link
-          to="/calendar"
+          to="/events"
           className="bg-white rounded-lg border border-dark-200 p-6 hover:shadow-lg transition-shadow group"
         >
           <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-400 flex items-center justify-center mb-3 group-hover:bg-purple-400 group-hover:text-white transition-colors">

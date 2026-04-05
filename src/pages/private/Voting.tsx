@@ -24,7 +24,7 @@ export const Voting: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="bg-white rounded-lg border border-dark-200 p-6">
         <h1 className="text-4xl font-bold text-dark-900 mb-2">Votaciones</h1>
         <p className="text-dark-600">
           Participa en las decisiones democráticas del grupo
