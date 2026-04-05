@@ -25,7 +25,7 @@ export const Donations: React.FC = () => {
       )}
       {canceled && <Alert type="warning" message="Cancelaste el proceso de pago. Puedes intentar de nuevo cuando quieras." />}
 
-      <DonationSection returnPath="/donaciones" variant="page" />
+      <DonationSection returnPath="/donaciones" variant="page" centerContent />
 
       <p className="text-center text-sm text-dark-500">
         <Link to="/" className="text-primary-500 hover:text-primary-600 font-medium">

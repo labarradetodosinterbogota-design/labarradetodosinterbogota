@@ -18,6 +18,8 @@ export interface DonationSectionProps {
   returnPath: string;
   /** Texto del bloque */
   variant?: 'home' | 'page';
+  /** Centra título y formulario (útil para páginas públicas). */
+  centerContent?: boolean;
   /** Enlace al módulo privado (ocultar si ya estás en Finanzas) */
   showPrivateFinanceHint?: boolean;
 }
@@ -25,6 +27,7 @@ export interface DonationSectionProps {
 export const DonationSection: React.FC<DonationSectionProps> = ({
   returnPath,
   variant = 'page',
+  centerContent = false,
   showPrivateFinanceHint = true,
 }) => {
   const [amount, setAmount] = useState('');
@@ -34,16 +37,19 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const isHome = variant === 'home';
+  const isCentered = isHome || centerContent;
   const sectionClass = 'rounded-2xl border border-dark-200 bg-white px-6 py-10 shadow-sm';
   const titleClass = isHome ? 'text-2xl sm:text-3xl' : 'text-3xl';
-  const headerClass = isHome
+  const headerClass = isCentered
     ? 'flex flex-col items-center text-center gap-4 mb-6'
     : 'flex flex-col sm:flex-row sm:items-start gap-4 mb-6';
-  const descriptionClass = isHome ? 'text-dark-600 text-sm sm:text-base max-w-2xl mx-auto' : 'text-dark-600 text-sm sm:text-base max-w-2xl';
-  const formClass = isHome ? 'space-y-4 max-w-xl mx-auto' : 'space-y-4 max-w-xl';
-  const presetsClass = isHome ? 'flex flex-wrap justify-center gap-2' : 'flex flex-wrap gap-2';
-  const buttonClass = isHome ? 'w-full sm:w-auto min-w-[200px] mx-auto' : 'w-full sm:w-auto min-w-[200px]';
-  const hintClass = isHome ? 'text-xs text-dark-500 text-center' : 'text-xs text-dark-500';
+  const descriptionClass = isCentered
+    ? 'text-dark-600 text-sm sm:text-base max-w-2xl mx-auto'
+    : 'text-dark-600 text-sm sm:text-base max-w-2xl';
+  const formClass = isCentered ? 'space-y-4 max-w-xl mx-auto' : 'space-y-4 max-w-xl';
+  const presetsClass = isCentered ? 'flex flex-wrap justify-center gap-2' : 'flex flex-wrap gap-2';
+  const buttonClass = isCentered ? 'w-full sm:w-auto min-w-[200px] mx-auto' : 'w-full sm:w-auto min-w-[200px]';
+  const hintClass = isCentered ? 'text-xs text-dark-500 text-center' : 'text-xs text-dark-500';
   const origin = globalThis.window?.location?.origin ?? '';
   const baseUrl = origin ? `${origin}${returnPath}` : returnPath;
 
