@@ -71,6 +71,20 @@ function mapSignUpErrorMessage(error: unknown): string {
   return message;
 }
 
+function resolveSignUpEmailRedirectUrl(): string | undefined {
+  const configured = import.meta.env.VITE_AUTH_EMAIL_REDIRECT_URL;
+  if (typeof configured === 'string' && configured.trim().length > 0) {
+    return configured.trim();
+  }
+
+  const runtimeWindow = globalThis.window;
+  if (runtimeWindow !== undefined && typeof runtimeWindow.location?.origin === 'string') {
+    return `${runtimeWindow.location.origin}/login`;
+  }
+
+  return undefined;
+}
+
 async function resolveSignUpSession(
   initialSession: Session | null
 ): Promise<Session> {
@@ -199,12 +213,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = useCallback(async (payload: SignUpPayload) => {
     setError(null);
     const { email, password, fullName, phone, verificationPhoto } = payload;
+    const emailRedirectTo = resolveSignUpEmailRedirectUrl();
 
     try {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          ...(emailRedirectTo ? { emailRedirectTo } : {}),
           data: {
             full_name: fullName.trim(),
             phone: phone.trim(),
