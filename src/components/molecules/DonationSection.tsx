@@ -34,9 +34,7 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const isHome = variant === 'home';
-  const sectionClass = isHome
-    ? 'rounded-2xl border border-dark-200 bg-white px-6 py-10 shadow-sm max-w-4xl mx-auto'
-    : 'rounded-2xl border border-dark-200 bg-white px-6 py-10 shadow-sm';
+  const sectionClass = 'rounded-2xl border border-dark-200 bg-white px-6 py-10 shadow-sm';
   const titleClass = isHome ? 'text-2xl sm:text-3xl' : 'text-3xl';
   const headerClass = isHome
     ? 'flex flex-col items-center text-center gap-4 mb-6'
