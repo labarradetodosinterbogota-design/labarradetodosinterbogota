@@ -15,8 +15,8 @@ export const History: React.FC = () => {
         <section className="bg-white rounded-lg border border-dark-200 p-8">
           <h2 className="text-2xl font-bold text-dark-900 mb-4">Los inicios</h2>
           <p className="text-dark-600 mb-4">
-            La barra popular de {BAR_OFFICIAL_NAME} nació con una misión clara: unir a la hinchada en torno al
-            club y sostener principios de no violencia y decisión democrática.
+            {BAR_OFFICIAL_NAME} nació con una misión clara: unir a la hinchada en torno al club y sostener
+            principios de no violencia y decisión democrática.
           </p>
           <p className="text-dark-600 mb-4">
             Desde el primer día fuimos un grupo que celebra la pasión del fútbol respetando a todas las
@@ -54,7 +54,7 @@ export const History: React.FC = () => {
         <section className="bg-white rounded-lg border border-dark-200 p-8">
           <h2 className="text-2xl font-bold text-dark-900 mb-4">Súmate al movimiento</h2>
           <p className="text-dark-600">
-            Seguimos creciendo. Nuestros integrantes vienen de todos los ámbitos, unidos por el amor a
+            Seguimos creciendo. Nuestros integrantes vienen de todos los ámbitos, unidos por el amor a{' '}
             {BAR_OFFICIAL_NAME} y por una hinchada responsable y apasionada. Si compartes estos valores, eres
             bienvenido.
           </p>

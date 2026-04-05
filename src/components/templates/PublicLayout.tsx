@@ -91,7 +91,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             <div>
               <h3 className="font-bold text-primary-400 mb-4">{BAR_OFFICIAL_NAME}</h3>
               <p className="text-dark-300 text-sm">
-                Barra popular unida por {BAR_OFFICIAL_NAME}. Abierta, no violenta y democrática.
+                Hinchada unida en {BAR_OFFICIAL_NAME}. Abierta, no violenta y democrática.
               </p>
             </div>
             <div>

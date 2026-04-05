@@ -82,6 +82,15 @@ export interface MembershipCard {
   qr_data: string;
 }
 
+export interface BarraGalleryItem {
+  id: string;
+  storage_path: string;
+  caption: string | null;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+}
+
 export interface Chant {
   id: string;
   title: string;

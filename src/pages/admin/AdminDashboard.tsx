@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, FileText, Vote, Music, Package, Mail } from 'lucide-react';
 import { Button, Input, TextArea, Alert, Spinner } from '../../components/atoms';
+import { GalleryAdminPanel } from '../../components/molecules';
 import { supabase } from '../../services/supabaseClient';
 
 export const AdminDashboard: React.FC = () => {
@@ -106,6 +107,8 @@ export const AdminDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <GalleryAdminPanel />
 
       <div className="bg-white rounded-lg border border-dark-200 p-6 space-y-4">
         <div className="flex items-center gap-2">

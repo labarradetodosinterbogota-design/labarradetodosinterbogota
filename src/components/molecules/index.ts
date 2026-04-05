@@ -6,3 +6,5 @@ export { VotingCard } from './VotingCard';
 export { SearchBar } from './SearchBar';
 export { Modal } from './Modal';
 export { Pagination } from './Pagination';
+export { BarraGallerySection } from './BarraGallerySection';
+export { GalleryAdminPanel } from './GalleryAdminPanel';
