@@ -7,6 +7,12 @@ import { BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 const PRESETS = [20_000, 50_000, 100_000] as const;
 
+function digitsOnly(value: string): string {
+  return Array.from(value)
+    .filter((ch) => ch >= '0' && ch <= '9')
+    .join('');
+}
+
 export interface DonationSectionProps {
   /** Ruta para back_urls (ej. /donaciones o /contribute) */
   returnPath: string;
@@ -27,7 +33,19 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const titleClass = variant === 'home' ? 'text-2xl sm:text-3xl' : 'text-3xl';
+  const isHome = variant === 'home';
+  const sectionClass = isHome
+    ? 'rounded-2xl border border-dark-200 bg-white px-6 py-10 shadow-sm max-w-4xl mx-auto'
+    : 'rounded-2xl border border-dark-200 bg-white px-6 py-10 shadow-sm';
+  const titleClass = isHome ? 'text-2xl sm:text-3xl' : 'text-3xl';
+  const headerClass = isHome
+    ? 'flex flex-col items-center text-center gap-4 mb-6'
+    : 'flex flex-col sm:flex-row sm:items-start gap-4 mb-6';
+  const descriptionClass = isHome ? 'text-dark-600 text-sm sm:text-base max-w-2xl mx-auto' : 'text-dark-600 text-sm sm:text-base max-w-2xl';
+  const formClass = isHome ? 'space-y-4 max-w-xl mx-auto' : 'space-y-4 max-w-xl';
+  const presetsClass = isHome ? 'flex flex-wrap justify-center gap-2' : 'flex flex-wrap gap-2';
+  const buttonClass = isHome ? 'w-full sm:w-auto min-w-[200px] mx-auto' : 'w-full sm:w-auto min-w-[200px]';
+  const hintClass = isHome ? 'text-xs text-dark-500 text-center' : 'text-xs text-dark-500';
   const origin = globalThis.window?.location?.origin ?? '';
   const baseUrl = origin ? `${origin}${returnPath}` : returnPath;
 
@@ -52,7 +70,7 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cop = Number.parseInt(amount.replace(/\D/g, ''), 10);
+    const cop = Number.parseInt(digitsOnly(amount), 10);
     if (!Number.isFinite(cop) || cop < 3_000) {
       setError('Indica un monto válido (mínimo $3.000 COP).');
       return;
@@ -61,14 +79,14 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
   };
 
   return (
-    <section className="rounded-2xl border border-dark-200 bg-white px-6 py-10 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">
+    <section className={sectionClass}>
+      <div className={headerClass}>
         <div className="w-12 h-12 rounded-xl bg-primary-100 text-primary-500 flex items-center justify-center shrink-0">
           <Heart className="w-7 h-7" aria-hidden />
         </div>
         <div>
           <h2 className={`font-bold text-dark-900 mb-2 ${titleClass}`}>Donaciones</h2>
-          <p className="text-dark-600 text-sm sm:text-base max-w-2xl">
+          <p className={descriptionClass}>
             Apoya a {BAR_OFFICIAL_NAME} con un aporte voluntario. Pago seguro con Mercado Pago (tarjeta, PSE,
             efectivo y otros medios disponibles según tu país). Los aportes exitosos se reflejan en el módulo de
             finanzas del área privada para transparencia.
@@ -78,8 +96,8 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
 
       {error && <Alert type="error" message={error} className="mb-4" />}
 
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
-        <div className="flex flex-wrap gap-2">
+      <form onSubmit={handleSubmit} className={formClass}>
+        <div className={presetsClass}>
           {PRESETS.map((v) => (
             <button
               key={v}
@@ -127,7 +145,7 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
           disabled={loading}
         />
 
-        <Button type="submit" variant="primary" className="w-full sm:w-auto min-w-[200px]" disabled={loading}>
+        <Button type="submit" variant="primary" className={buttonClass} disabled={loading}>
           {loading ? (
             <span className="flex items-center justify-center gap-2">
               <Spinner size="sm" /> Conectando…
@@ -138,7 +156,7 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
         </Button>
 
         {showPrivateFinanceHint ? (
-          <p className="text-xs text-dark-500">
+          <p className={hintClass}>
             Al continuar serás redirigido al checkout de Mercado Pago. Si aún no ves el aporte, espera unos minutos
             o revisa desde{' '}
             <Link to="/contribute" className="text-primary-500 hover:text-primary-600 font-medium">
@@ -147,7 +165,7 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
             .
           </p>
         ) : (
-          <p className="text-xs text-dark-500">
+          <p className={hintClass}>
             Al continuar serás redirigido al checkout de Mercado Pago.
           </p>
         )}
