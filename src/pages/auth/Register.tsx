@@ -24,7 +24,7 @@ export const Register: React.FC = () => {
   } = useForm<RegisterFormData>({
     defaultValues: { hinchaConfirm: false },
   });
-  const [error, setError] = React.useState<string | null>(null);
+  const [feedback, setFeedback] = React.useState<{ type: 'error' | 'info'; message: string } | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const { signUp, user, canAccessPrivateArea, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -39,10 +39,13 @@ export const Register: React.FC = () => {
   }, [authLoading, user, canAccessPrivateArea, navigate]);
 
   const onSubmit = async (data: RegisterFormData) => {
-    setError(null);
+    setFeedback(null);
     const file = fileInputRef.current?.files?.[0];
     if (!file) {
-      setError('Debes adjuntar una foto que demuestre que eres hincha de Inter Bogotá.');
+      setFeedback({
+        type: 'error',
+        message: 'Debes adjuntar una foto que demuestre que eres hincha de Inter Bogotá.',
+      });
       return;
     }
 
@@ -57,7 +60,12 @@ export const Register: React.FC = () => {
       });
       navigate('/cuenta-pendiente', { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo completar el registro.');
+      const message = err instanceof Error ? err.message : 'No se pudo completar el registro.';
+      if (message.startsWith('Cuenta creada.')) {
+        setFeedback({ type: 'info', message });
+        return;
+      }
+      setFeedback({ type: 'error', message });
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +83,7 @@ export const Register: React.FC = () => {
             estadio, carnet u otro elemento que acredite tu hinchada.
           </p>
 
-          {error && <Alert type="error" message={error} className="mb-6" />}
+          {feedback && <Alert type={feedback.type} message={feedback.message} className="mb-6" />}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input

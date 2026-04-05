@@ -3,12 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, Alert, Spinner } from '../../components/atoms';
 import { PublicLayout } from '../../components/templates';
 import { useAuth } from '../../context/AuthContext';
+import { uploadFanVerificationPhoto } from '../../services/fanVerificationStorage';
+import { supabase } from '../../services/supabaseClient';
 import { UserStatus } from '../../types';
 
 export const PendingApproval: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoading, signOut, refreshProfile, canAccessPrivateArea } = useAuth();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [busy, setBusy] = React.useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = React.useState(false);
   const [msg, setMsg] = React.useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   React.useEffect(() => {
@@ -27,6 +31,43 @@ export const PendingApproval: React.FC = () => {
       setMsg({ type: 'error', text: 'No se pudo actualizar. Intenta de nuevo.' });
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleUploadVerificationPhoto = async () => {
+    if (!user) return;
+    const file = fileInputRef.current?.files?.[0];
+    if (!file) {
+      setMsg({ type: 'error', text: 'Selecciona una foto antes de enviar.' });
+      return;
+    }
+
+    setMsg(null);
+    setUploadingPhoto(true);
+    try {
+      const storagePath = await uploadFanVerificationPhoto(user.id, file);
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          fan_verification_storage_path: storagePath,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+      if (updateError) throw updateError;
+
+      await refreshProfile();
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      setMsg({
+        type: 'success',
+        text: 'Foto de verificación enviada correctamente. Ya puede ser revisada por coordinación.',
+      });
+    } catch (error) {
+      setMsg({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'No se pudo enviar la foto. Intenta de nuevo.',
+      });
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -106,6 +147,31 @@ export const PendingApproval: React.FC = () => {
             Mientras tanto puedes cerrar sesión o comprobar si ya fuiste aprobado.
           </p>
 
+          {!user.fan_verification_storage_path && (
+            <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-3">
+              <p className="text-sm text-amber-900">
+                Tu cuenta aún no tiene foto de verificación. Súbela para que coordinación pueda aprobar tu solicitud.
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="block w-full text-sm text-dark-700 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:font-medium file:text-dark-900"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  handleUploadVerificationPhoto().catch(() => {});
+                }}
+                isLoading={uploadingPhoto}
+                disabled={busy}
+              >
+                Subir foto de verificación
+              </Button>
+            </div>
+          )}
+
           {msg && <Alert type={msg.type} message={msg.text} className="mb-4" />}
 
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -115,7 +181,7 @@ export const PendingApproval: React.FC = () => {
               onClick={() => {
                 handleRefresh().catch(() => {});
               }}
-              disabled={busy}
+              disabled={busy || uploadingPhoto}
               isLoading={busy}
             >
               Comprobar estado
@@ -123,6 +189,7 @@ export const PendingApproval: React.FC = () => {
             <Button
               type="button"
               variant="outline"
+              disabled={uploadingPhoto}
               onClick={() => {
                 signOut().catch(() => {});
               }}

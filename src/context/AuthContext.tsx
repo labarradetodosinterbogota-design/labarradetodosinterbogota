@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { User, UserStatus } from '../types';
 import { supabase } from '../services/supabaseClient';
 import { uploadFanVerificationPhoto, FAN_VERIFICATION_BUCKET } from '../services/fanVerificationStorage';
@@ -30,27 +30,80 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function resolveSignUpSession(
-  email: string,
-  password: string,
   initialSession: Session | null
 ): Promise<Session> {
   if (initialSession?.user) {
     return initialSession;
   }
+  throw new Error(
+    'Cuenta creada. Revisa tu correo para confirmarlo y luego inicia sesión para completar el registro.'
+  );
+}
 
-  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (signInError) {
-    throw new Error(
-      'Cuenta creada. Si debes confirmar el correo, hazlo y luego inicia sesión para completar el registro.'
-    );
+async function ensureMemberProfileRow(userId: string): Promise<void> {
+  const { error } = await supabase.from('member_profiles').insert({ user_id: userId });
+  if (error && error.code !== '23505') {
+    throw error;
   }
-  if (!signInData.session?.user) {
-    throw new Error('No hay sesión activa. Confirma tu correo e inicia sesión.');
+}
+
+function fallbackFullNameFromEmail(email: string | null): string {
+  if (!email) return 'Nuevo integrante';
+  const localPart = email.split('@')[0]?.trim() ?? '';
+  if (!localPart) return 'Nuevo integrante';
+  return localPart
+    .replace(/[._-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+async function ensureUserRowForAuthUser(authUser: SupabaseAuthUser): Promise<User | null> {
+  const { data: existingProfile, error: profileFetchError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', authUser.id)
+    .maybeSingle();
+  if (profileFetchError) throw profileFetchError;
+  if (existingProfile) {
+    await ensureMemberProfileRow(authUser.id);
+    return normalizeUserRow(existingProfile);
   }
-  return signInData.session;
+
+  const metadata = (authUser.user_metadata ?? {}) as Record<string, unknown>;
+  const fullName =
+    toNullableString(metadata.full_name)?.trim() || fallbackFullNameFromEmail(authUser.email ?? null);
+  const phone = toNullableString(metadata.phone)?.trim() || null;
+  const memberId = `INTER-${Date.now()}`;
+
+  const { data: insertedProfile, error: profileInsertError } = await supabase
+    .from('users')
+    .insert({
+      id: authUser.id,
+      email: authUser.email ?? '',
+      phone,
+      full_name: fullName,
+      member_id: memberId,
+      status: 'pending',
+    })
+    .select('*')
+    .single();
+
+  if (profileInsertError) {
+    const { data: rowAfterError, error: refetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .maybeSingle();
+    if (refetchError) throw refetchError;
+    if (!rowAfterError) throw profileInsertError;
+    await ensureMemberProfileRow(authUser.id);
+    return normalizeUserRow(rowAfterError);
+  }
+
+  await ensureMemberProfileRow(authUser.id);
+  return normalizeUserRow(insertedProfile);
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -66,14 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } = await supabase.auth.getSession();
 
         if (session?.user) {
-          const { data, error: fetchError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (fetchError) throw fetchError;
-          setUser(normalizeUserRow(data));
+          const profile = await ensureUserRowForAuthUser(session.user);
+          setUser(profile);
         }
       } catch (err) {
         if (import.meta.env.DEV) {
@@ -91,13 +138,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       void (async () => {
         try {
           if (session?.user) {
-            const { data, error: profileError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
-            if (profileError) throw profileError;
-            setUser(normalizeUserRow(data));
+            const profile = await ensureUserRowForAuthUser(session.user);
+            setUser(profile);
           } else {
             setUser(null);
           }
@@ -120,12 +162,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            phone: phone.trim(),
+          },
+        },
       });
 
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error('No se pudo completar el registro.');
 
-      const session = await resolveSignUpSession(email, password, authData.session);
+      const session = await resolveSignUpSession(authData.session);
 
       const userId = session.user.id;
       const storagePath = await uploadFanVerificationPhoto(userId, verificationPhoto);
@@ -184,14 +232,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } = await supabase.auth.getUser();
       if (!authUser?.id) return null;
 
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authUser.id)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-      const normalized = normalizeUserRow(profile);
+      const normalized = await ensureUserRowForAuthUser(authUser);
       setUser(normalized);
       return normalized;
     } catch (err) {
