@@ -91,6 +91,13 @@ function mapSignInErrorMessage(error: unknown): string {
     return 'Demasiados intentos de inicio de sesión. Espera un momento e intenta nuevamente.';
   }
 
+  const isEmailConstraintConflict =
+    normalized.includes('users_email_key') ||
+    (normalized.includes('duplicate key value') && normalized.includes('email'));
+  if (isEmailConstraintConflict) {
+    return 'Tu cuenta tiene un conflicto de registro con el correo. Contacta a coordinación para regularizarla.';
+  }
+
   return message;
 }
 
