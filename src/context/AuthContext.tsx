@@ -390,13 +390,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = useCallback(async () => {
     setError(null);
     try {
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) throw signOutError;
+      const { error: globalSignOutError } = await supabase.auth.signOut({ scope: 'global' });
+      if (globalSignOutError) {
+        const { error: localSignOutError } = await supabase.auth.signOut({ scope: 'local' });
+        if (localSignOutError) {
+          throw globalSignOutError;
+        }
+      }
       setUser(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'No se pudo cerrar sesión.';
       setError(message);
-      throw err;
+      if (err instanceof Error && err.message === message) {
+        throw err;
+      }
+      throw new Error(message);
     }
   }, []);
 

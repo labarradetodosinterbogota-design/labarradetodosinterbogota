@@ -19,7 +19,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
               <BrandMark variant="onDark" />
-              <span className="font-bold text-lg hidden sm:inline">{BAR_OFFICIAL_NAME}</span>
+              <span className="font-bold text-sm sm:text-lg">{BAR_OFFICIAL_NAME}</span>
             </Link>
 
             <button

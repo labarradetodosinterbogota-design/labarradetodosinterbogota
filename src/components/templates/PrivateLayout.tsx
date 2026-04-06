@@ -9,15 +9,30 @@ interface PrivateLayoutProps {
   children: React.ReactNode;
 }
 
+const PRIVATE_INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
+
 export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const inactivityTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLoggingOutRef = React.useRef(false);
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/login');
-  };
+  const handleLogout = React.useCallback(async () => {
+    if (isLoggingOutRef.current) return;
+    isLoggingOutRef.current = true;
+    try {
+      await signOut();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Logout error:', error);
+      }
+    } finally {
+      setMenuOpen(false);
+      navigate('/', { replace: true });
+      isLoggingOutRef.current = false;
+    }
+  }, [navigate, signOut]);
 
   const initials =
     user?.full_name
@@ -29,6 +44,53 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
   const isAdmin = user?.role === 'coordinator_admin';
   const closeMenu = () => setMenuOpen(false);
 
+  const clearInactivityTimer = React.useCallback(() => {
+    if (inactivityTimeoutRef.current !== null) {
+      clearTimeout(inactivityTimeoutRef.current);
+      inactivityTimeoutRef.current = null;
+    }
+  }, []);
+
+  const resetInactivityTimer = React.useCallback(() => {
+    clearInactivityTimer();
+    if (!user) return;
+    inactivityTimeoutRef.current = setTimeout(() => {
+      void handleLogout();
+    }, PRIVATE_INACTIVITY_TIMEOUT_MS);
+  }, [clearInactivityTimer, handleLogout, user]);
+
+  React.useEffect(() => {
+    if (!user) {
+      clearInactivityTimer();
+      return;
+    }
+
+    const onActivity = () => {
+      resetInactivityTimer();
+    };
+
+    const activityEvents: Array<keyof WindowEventMap> = [
+      'mousedown',
+      'mousemove',
+      'keydown',
+      'touchstart',
+      'scroll',
+    ];
+
+    for (const eventName of activityEvents) {
+      globalThis.addEventListener(eventName, onActivity);
+    }
+
+    resetInactivityTimer();
+
+    return () => {
+      for (const eventName of activityEvents) {
+        globalThis.removeEventListener(eventName, onActivity);
+      }
+      clearInactivityTimer();
+    };
+  }, [clearInactivityTimer, resetInactivityTimer, user]);
+
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
       <header className="bg-white/95 backdrop-blur-sm border-b border-dark-200/80 sticky top-0 z-40">
@@ -36,7 +98,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
           <div className="flex items-center justify-between">
             <Link to="/dashboard" className="flex items-center gap-2" onClick={closeMenu}>
               <BrandMark variant="onLight" />
-              <span className="font-bold text-lg hidden sm:inline text-dark-900">{BAR_OFFICIAL_NAME}</span>
+              <span className="font-bold text-sm sm:text-lg text-dark-900">{BAR_OFFICIAL_NAME}</span>
             </Link>
 
             <button
@@ -123,7 +185,6 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
                   type="button"
                   className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
                   onClick={() => {
-                    closeMenu();
                     void handleLogout();
                   }}
                 >
@@ -145,7 +206,9 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleLogout}
+                onClick={() => {
+                  void handleLogout();
+                }}
                 className="text-dark-600"
                 aria-label="Cerrar sesión"
               >
