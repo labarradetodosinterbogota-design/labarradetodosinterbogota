@@ -91,7 +91,10 @@ async function handleEmailConflict(
   if (!rowByEmail) return 'retry';
   if (rowByEmail.id === input.userId) return 'already_created';
 
-  const { data: authLookup } = await supabase.auth.admin.getUserById(rowByEmail.id);
+  const { data: authLookup, error: authLookupError } = await supabase.auth.admin.getUserById(rowByEmail.id);
+  if (authLookupError && !authLookupError.message.toLowerCase().includes('not found')) {
+    throw new Error(authLookupError.message);
+  }
   if (authLookup.user) {
     throw new BootstrapHttpError(
       409,
@@ -100,7 +103,7 @@ async function handleEmailConflict(
     );
   }
 
-  const canReclaimOrphan = rowByEmail.status === 'pending' && rowByEmail.role !== 'coordinator_admin';
+  const canReclaimOrphan = rowByEmail.role !== 'coordinator_admin';
   if (!canReclaimOrphan) {
     throw new BootstrapHttpError(
       409,
@@ -206,7 +209,12 @@ export async function handleBootstrapPendingMember(
     return;
   }
 
-  const input = parsed.data;
+  const input = {
+    ...parsed.data,
+    email: normalizeEmail(parsed.data.email),
+    fullName: parsed.data.fullName.trim(),
+    phone: parsed.data.phone?.trim(),
+  };
   const supabase = getSupabaseAdmin();
 
   const { data: authLookup, error: authLookupError } = await supabase.auth.admin.getUserById(input.userId);
@@ -216,7 +224,7 @@ export async function handleBootstrapPendingMember(
   }
 
   const authEmail = normalizeEmail(authLookup.user.email ?? '');
-  if (!authEmail || authEmail !== normalizeEmail(input.email)) {
+  if (!authEmail || authEmail !== input.email) {
     json(res, 409, { error: 'email_mismatch' });
     return;
   }
