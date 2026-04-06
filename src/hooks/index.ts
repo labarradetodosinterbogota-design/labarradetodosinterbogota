@@ -6,6 +6,7 @@ export { usePublicDocuments, useAllDocuments, useDocumentsByCategory, useCreateD
 export { useBarraGallery, useGalleryUpload, useGalleryDelete } from './useBarraGallery';
 export { usePendingMembers, useApproveMember, useRejectMember } from './usePendingMembers';
 export { useSucceededContributions, useFinanceExpenses, useCreateFinanceExpense } from './useFinanceTransparency';
+export { useForumPosts, useForumComments, useCreateForumPost, useCreateForumComment } from './useForum';
 export {
   useInventoryItems,
   useCreateInventoryItem,

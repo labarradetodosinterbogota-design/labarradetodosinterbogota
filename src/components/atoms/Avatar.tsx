@@ -15,17 +15,24 @@ export const Avatar: React.FC<AvatarProps> = ({
   size = 'md',
   className = '',
 }) => {
+  const [imageError, setImageError] = React.useState(false);
+
+  React.useEffect(() => {
+    setImageError(false);
+  }, [src]);
+
   const sizeStyles: Record<string, string> = {
     sm: 'w-8 h-8 text-xs',
     md: 'w-12 h-12 text-base',
     lg: 'w-16 h-16 text-lg',
   };
 
-  if (src) {
+  if (src && !imageError) {
     return (
       <img
         src={src}
         alt={alt}
+        onError={() => setImageError(true)}
         className={`${sizeStyles[size]} rounded-full object-cover ${className}`.trim()}
       />
     );
