@@ -50,18 +50,20 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
             </button>
 
             <nav
-              className={`${menuOpen ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row gap-2 sm:gap-4 absolute sm:static top-16 left-0 right-0 bg-white/98 backdrop-blur-sm sm:bg-transparent p-4 sm:p-0 border-b sm:border-0 border-dark-200`}
+              className={`${
+                menuOpen ? 'flex' : 'hidden'
+              } sm:flex flex-col sm:flex-row gap-1 sm:gap-4 absolute sm:static top-full left-0 right-0 z-50 mt-2 sm:mt-0 bg-white sm:bg-transparent p-3 sm:p-0 border border-dark-200 sm:border-0 rounded-xl sm:rounded-none shadow-lg sm:shadow-none`}
             >
               <Link
                 to="/dashboard"
-                className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-dark-700 hover:bg-dark-100 hover:text-primary-400 transition-colors sm:rounded-none sm:px-0 sm:py-0 sm:text-dark-600 sm:hover:bg-transparent"
                 onClick={closeMenu}
               >
                 <span>Inicio</span>
               </Link>
               <Link
                 to="/members"
-                className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-dark-700 hover:bg-dark-100 hover:text-primary-400 transition-colors sm:rounded-none sm:px-0 sm:py-0 sm:text-dark-600 sm:hover:bg-transparent"
                 onClick={closeMenu}
               >
                 <Users className="w-4 h-4" />
@@ -69,7 +71,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               </Link>
               <Link
                 to="/voting"
-                className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-dark-700 hover:bg-dark-100 hover:text-primary-400 transition-colors sm:rounded-none sm:px-0 sm:py-0 sm:text-dark-600 sm:hover:bg-transparent"
                 onClick={closeMenu}
               >
                 <Vote className="w-4 h-4" />
@@ -77,7 +79,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               </Link>
               <Link
                 to="/calendar"
-                className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-dark-700 hover:bg-dark-100 hover:text-primary-400 transition-colors sm:rounded-none sm:px-0 sm:py-0 sm:text-dark-600 sm:hover:bg-transparent"
                 onClick={closeMenu}
               >
                 <Calendar className="w-4 h-4" />
@@ -85,7 +87,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               </Link>
               <Link
                 to="/documents"
-                className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-dark-700 hover:bg-dark-100 hover:text-primary-400 transition-colors sm:rounded-none sm:px-0 sm:py-0 sm:text-dark-600 sm:hover:bg-transparent"
                 onClick={closeMenu}
               >
                 <FileText className="w-4 h-4" />
@@ -93,7 +95,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               </Link>
               <Link
                 to="/contribute"
-                className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-dark-700 hover:bg-dark-100 hover:text-primary-400 transition-colors sm:rounded-none sm:px-0 sm:py-0 sm:text-dark-600 sm:hover:bg-transparent"
                 onClick={closeMenu}
               >
                 <Banknote className="w-4 h-4" />
@@ -101,7 +103,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               </Link>
               <Link
                 to="/forum"
-                className="flex items-center gap-2 text-dark-600 hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-dark-700 hover:bg-dark-100 hover:text-primary-400 transition-colors sm:rounded-none sm:px-0 sm:py-0 sm:text-dark-600 sm:hover:bg-transparent"
                 onClick={closeMenu}
               >
                 <MessageCircle className="w-4 h-4" />
@@ -110,7 +112,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className="flex items-center gap-2 text-primary-400 hover:text-primary-500 transition-colors font-medium"
+                  className="flex items-center gap-2 rounded-lg bg-primary-50 px-3 py-2 text-primary-500 hover:bg-primary-100 hover:text-primary-600 transition-colors font-medium sm:rounded-none sm:bg-transparent sm:px-0 sm:py-0 sm:text-primary-400 sm:hover:bg-transparent sm:hover:text-primary-500"
                   onClick={closeMenu}
                 >
                   <span>Administración</span>
