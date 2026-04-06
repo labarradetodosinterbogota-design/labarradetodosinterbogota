@@ -118,6 +118,19 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
                   <span>Administración</span>
                 </Link>
               )}
+              <div className="sm:hidden mt-1 border-t border-dark-200 pt-2">
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                  onClick={() => {
+                    closeMenu();
+                    void handleLogout();
+                  }}
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Cerrar sesión</span>
+                </button>
+              </div>
             </nav>
 
             <div className="hidden sm:flex items-center gap-4">
