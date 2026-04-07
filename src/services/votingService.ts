@@ -1,4 +1,4 @@
-import { getSupabaseUrl, supabase } from './supabaseClient';
+import { supabase } from './supabaseClient';
 import { VotingPoll, Vote, PaginatedResponse, VotingStatus } from '../types';
 import { runExactCount } from '../utils/supabaseExactCount';
 
@@ -19,44 +19,133 @@ interface VotingPollDbRow {
 }
 
 type CreatePollInput = Omit<VotingPoll, 'id' | 'created_at' | 'total_votes' | 'total_members'>;
-const VOTING_OPTION_IMAGES_BUCKET = 'voting-option-images';
-const VOTING_OPTION_IMAGES_PUBLIC_PATH_SEGMENT = `/storage/v1/object/public/${VOTING_OPTION_IMAGES_BUCKET}/`;
+const PRIMARY_VOTING_OPTION_IMAGES_BUCKET = 'voting-option-images';
+const FALLBACK_VOTING_OPTION_IMAGES_BUCKET = 'barra-gallery';
+const VOTING_OPTIONS_FOLDER_PREFIX = 'voting-options/';
+const VOTING_OPTION_IMAGE_SOURCES: ReadonlyArray<{
+  bucketId: string;
+  publicPathSegment: string;
+}> = [
+  {
+    bucketId: PRIMARY_VOTING_OPTION_IMAGES_BUCKET,
+    publicPathSegment: '/storage/v1/object/public/voting-option-images/',
+  },
+  {
+    bucketId: FALLBACK_VOTING_OPTION_IMAGES_BUCKET,
+    publicPathSegment: '/storage/v1/object/public/barra-gallery/',
+  },
+];
 
-function extractVotingOptionStoragePath(imageUrl: string): string | null {
+interface VotingOptionImageRef {
+  bucketId: string;
+  storagePath: string;
+}
+
+function buildImageRefKey(ref: VotingOptionImageRef): string {
+  return `${ref.bucketId}|${ref.storagePath}`;
+}
+
+function extractVotingOptionStorageRef(imageUrl: string): VotingOptionImageRef | null {
   const normalizedUrl = imageUrl.trim();
-  if (normalizedUrl.length === 0) return null;
+  if (normalizedUrl.length === 0 || !normalizedUrl.startsWith('http')) return null;
 
   try {
     const parsedUrl = new URL(normalizedUrl);
-    const segmentIndex = parsedUrl.pathname.indexOf(VOTING_OPTION_IMAGES_PUBLIC_PATH_SEGMENT);
-    if (segmentIndex === -1) return null;
-    const encodedPath = parsedUrl.pathname.slice(
-      segmentIndex + VOTING_OPTION_IMAGES_PUBLIC_PATH_SEGMENT.length
-    );
-    if (encodedPath.length === 0) return null;
-    return decodeURIComponent(encodedPath);
+    for (const source of VOTING_OPTION_IMAGE_SOURCES) {
+      const segmentIndex = parsedUrl.pathname.indexOf(source.publicPathSegment);
+      if (segmentIndex === -1) continue;
+
+      const encodedPath = parsedUrl.pathname.slice(segmentIndex + source.publicPathSegment.length);
+      if (encodedPath.length === 0) continue;
+
+      const decodedPath = decodeURIComponent(encodedPath);
+      const isFallbackWithoutPrefix =
+        source.bucketId === FALLBACK_VOTING_OPTION_IMAGES_BUCKET &&
+        !decodedPath.startsWith(VOTING_OPTIONS_FOLDER_PREFIX);
+      if (isFallbackWithoutPrefix) {
+        continue;
+      }
+
+      return {
+        bucketId: source.bucketId,
+        storagePath: decodedPath,
+      };
+    }
+    return null;
   } catch {
-    const fallbackPrefix = `${getSupabaseUrl()}${VOTING_OPTION_IMAGES_PUBLIC_PATH_SEGMENT}`;
-    if (!normalizedUrl.startsWith(fallbackPrefix)) return null;
-    const encodedPath = normalizedUrl.slice(fallbackPrefix.length).split('?')[0];
-    if (encodedPath.length === 0) return null;
-    return decodeURIComponent(encodedPath);
+    return null;
   }
 }
 
-function extractImageStoragePathsFromOptions(optionsValue: unknown): string[] {
+function extractImageStorageRefsFromOptions(optionsValue: unknown): VotingOptionImageRef[] {
   if (!Array.isArray(optionsValue)) return [];
-  const uniquePaths = new Set<string>();
+  const uniqueRefs = new Map<string, VotingOptionImageRef>();
 
   for (const option of optionsValue) {
     if (!option || typeof option !== 'object') continue;
     const imageUrl = (option as { image_url?: unknown }).image_url;
     if (typeof imageUrl !== 'string') continue;
-    const storagePath = extractVotingOptionStoragePath(imageUrl);
-    if (storagePath) uniquePaths.add(storagePath);
+    const ref = extractVotingOptionStorageRef(imageUrl);
+    if (!ref) continue;
+    uniqueRefs.set(buildImageRefKey(ref), ref);
   }
 
-  return Array.from(uniquePaths);
+  return Array.from(uniqueRefs.values());
+}
+
+function collectUsedImageRefKeys(
+  polls: Array<{ options?: unknown }>
+): Set<string> {
+  const usedRefKeys = new Set<string>();
+  for (const poll of polls) {
+    for (const ref of extractImageStorageRefsFromOptions(poll.options)) {
+      usedRefKeys.add(buildImageRefKey(ref));
+    }
+  }
+  return usedRefKeys;
+}
+
+function groupStoragePathsByBucket(
+  imageRefs: VotingOptionImageRef[]
+): Map<string, string[]> {
+  const grouped = new Map<string, string[]>();
+  for (const ref of imageRefs) {
+    const paths = grouped.get(ref.bucketId) ?? [];
+    paths.push(ref.storagePath);
+    grouped.set(ref.bucketId, paths);
+  }
+  return grouped;
+}
+
+async function cleanupOrphanVotingOptionImages(
+  candidateImageRefs: VotingOptionImageRef[]
+): Promise<void> {
+  if (candidateImageRefs.length === 0) return;
+
+  try {
+    const { data: remainingPolls, error: remainingPollsError } = await supabase
+      .from('voting_polls')
+      .select('options');
+    if (remainingPollsError) throw remainingPollsError;
+
+    const stillUsedRefKeys = collectUsedImageRefKeys(remainingPolls ?? []);
+    const orphanRefs = candidateImageRefs.filter(
+      (ref) => !stillUsedRefKeys.has(buildImageRefKey(ref))
+    );
+    if (orphanRefs.length === 0) return;
+
+    const storagePathsByBucket = groupStoragePathsByBucket(orphanRefs);
+    for (const [bucketId, storagePaths] of storagePathsByBucket.entries()) {
+      const { error: storageError } = await supabase.storage.from(bucketId).remove(storagePaths);
+      if (storageError && import.meta.env.DEV) {
+        console.warn('Voting option image cleanup warning:', storageError.message);
+      }
+    }
+  } catch (cleanupError) {
+    if (import.meta.env.DEV) {
+      console.warn('Voting option image cleanup skipped:', cleanupError);
+    }
+  }
 }
 
 export const votingService = {
@@ -237,7 +326,7 @@ export const votingService = {
       .single();
     if (pollError) throw pollError;
 
-    const candidateStoragePaths = extractImageStoragePathsFromOptions(poll.options);
+    const candidateImageRefs = extractImageStorageRefsFromOptions(poll.options);
 
     const { error: deleteError } = await supabase
       .from('voting_polls')
@@ -245,36 +334,7 @@ export const votingService = {
       .eq('id', id);
     if (deleteError) throw deleteError;
 
-    if (candidateStoragePaths.length === 0) return;
-
-    try {
-      const { data: remainingPolls, error: remainingPollsError } = await supabase
-        .from('voting_polls')
-        .select('options');
-      if (remainingPollsError) throw remainingPollsError;
-
-      const stillUsedPaths = new Set<string>();
-      for (const remainingPoll of remainingPolls ?? []) {
-        for (const path of extractImageStoragePathsFromOptions(remainingPoll.options)) {
-          stillUsedPaths.add(path);
-        }
-      }
-
-      const orphanPaths = candidateStoragePaths.filter((path) => !stillUsedPaths.has(path));
-      if (orphanPaths.length === 0) return;
-
-      const { error: storageError } = await supabase
-        .storage
-        .from(VOTING_OPTION_IMAGES_BUCKET)
-        .remove(orphanPaths);
-      if (storageError && import.meta.env.DEV) {
-        console.warn('Voting option image cleanup warning:', storageError.message);
-      }
-    } catch (cleanupError) {
-      if (import.meta.env.DEV) {
-        console.warn('Voting option image cleanup skipped:', cleanupError);
-      }
-    }
+    await cleanupOrphanVotingOptionImages(candidateImageRefs);
   },
 };
 
