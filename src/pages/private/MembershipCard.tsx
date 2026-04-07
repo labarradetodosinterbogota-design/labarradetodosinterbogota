@@ -4,6 +4,8 @@ import { Download, Image as ImageIcon, Share2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../../context/AuthContext';
 import {
+  BAR_FLAG_BANNER_ASSET_PATH,
+  BAR_FLAG_BANNER_FALLBACK_ASSET_PATH,
   BAR_OFFICIAL_NAME,
   BAR_SHIELD_ASSET_PATH,
   BAR_SHIELD_FALLBACK_ASSET_PATH,
@@ -25,6 +27,18 @@ async function loadBrandLogoImage(): Promise<HTMLImageElement | null> {
   } catch {
     try {
       return await loadImageAsset(BAR_SHIELD_FALLBACK_ASSET_PATH);
+    } catch {
+      return null;
+    }
+  }
+}
+
+async function loadBrandFlagImage(): Promise<HTMLImageElement | null> {
+  try {
+    return await loadImageAsset(BAR_FLAG_BANNER_ASSET_PATH);
+  } catch {
+    try {
+      return await loadImageAsset(BAR_FLAG_BANNER_FALLBACK_ASSET_PATH);
     } catch {
       return null;
     }
@@ -97,6 +111,35 @@ const fitTextToWidth = (
     sliced = sliced.slice(0, -1);
   }
   return sliced.length > 0 ? `${sliced}...` : text;
+};
+
+const drawImageContained = (
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): void => {
+  const sourceWidth = image.naturalWidth || image.width || 1;
+  const sourceHeight = image.naturalHeight || image.height || 1;
+  const sourceRatio = sourceWidth / sourceHeight;
+  const targetRatio = width / height;
+
+  let drawWidth = width;
+  let drawHeight = height;
+  let drawX = x;
+  let drawY = y;
+
+  if (sourceRatio > targetRatio) {
+    drawHeight = width / sourceRatio;
+    drawY = y + (height - drawHeight) / 2;
+  } else {
+    drawWidth = height * sourceRatio;
+    drawX = x + (width - drawWidth) / 2;
+  }
+
+  context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
 };
 
 const CARD_SHIELD_PATTERN_STYLE: Readonly<React.CSSProperties> = {
@@ -275,6 +318,7 @@ export const MembershipCard: React.FC = () => {
       context.fillRect(0, 0, width, height);
 
       const logoImage = await loadBrandLogoImage();
+      const flagImage = await loadBrandFlagImage();
       if (logoImage) {
         const tileSize = 96;
         context.globalAlpha = 0.11;
@@ -336,6 +380,18 @@ export const MembershipCard: React.FC = () => {
       context.font = `700 38px ${MEMBERSHIP_FONT_STACK}`;
       context.fillText(user.member_id, 102, 456, 560);
       context.fillText(String(joinYear), 740, 456);
+
+      if (flagImage) {
+        context.fillStyle = 'rgba(255,255,255,0.92)';
+        fillRoundedRect(context, 86, height - 196, width - 172, 82, 16);
+        context.save();
+        context.beginPath();
+        drawRoundedRectPath(context, 92, height - 190, width - 184, 70, 12);
+        context.closePath();
+        context.clip();
+        drawImageContained(context, flagImage, 92, height - 190, width - 184, 70);
+        context.restore();
+      }
 
       context.fillStyle = 'rgba(255,255,255,0.74)';
       context.font = `500 20px ${MEMBERSHIP_FONT_STACK}`;
@@ -481,6 +537,19 @@ export const MembershipCard: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-lg border border-white/25 bg-white/95 p-1.5">
+                <picture>
+                  <source srcSet={BAR_FLAG_BANNER_ASSET_PATH} type="image/webp" />
+                  <img
+                    src={BAR_FLAG_BANNER_FALLBACK_ASSET_PATH}
+                    alt={`Bandera ${BAR_OFFICIAL_NAME}`}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-14 w-full object-contain"
+                  />
+                </picture>
               </div>
             </div>
           </div>
