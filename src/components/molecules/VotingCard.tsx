@@ -2,6 +2,27 @@ import React, { useState } from 'react';
 import { Badge } from '../atoms';
 import { VotingPoll } from '../../types';
 
+interface VotingOptionThumbnailProps {
+  src: string;
+  label: string;
+}
+
+const VotingOptionThumbnail: React.FC<VotingOptionThumbnailProps> = ({ src, label }) => {
+  const [hasError, setHasError] = useState(false);
+  if (hasError || src.trim().length === 0) return null;
+
+  return (
+    <img
+      src={src}
+      alt={`Imagen opción ${label}`}
+      loading="lazy"
+      decoding="async"
+      className="h-9 w-9 rounded-md border border-dark-200 bg-white object-cover shadow-sm"
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
 interface VotingCardProps {
   poll: VotingPoll;
   onVote?: (poll: VotingPoll, option: string) => void;
@@ -50,7 +71,12 @@ export const VotingCard: React.FC<VotingCardProps> = ({ poll, onVote, userVote }
                   className="w-4 h-4 accent-primary-400"
                   disabled={poll.status !== 'active'}
                 />
-                <span className="text-sm font-medium text-dark-900">{option.label}</span>
+                <div className="flex items-center gap-2">
+                  {option.image_url ? (
+                    <VotingOptionThumbnail src={option.image_url} label={option.label} />
+                  ) : null}
+                  <span className="text-sm font-medium text-dark-900">{option.label}</span>
+                </div>
               </label>
               <span className="text-sm font-medium text-primary-400">
                 {option.vote_count} ({option.percentage.toFixed(1)}%)

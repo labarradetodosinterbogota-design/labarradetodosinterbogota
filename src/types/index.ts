@@ -163,6 +163,7 @@ export interface CalendarEvent {
 export interface VoteOption {
   id: string;
   label: string;
+  image_url: string | null;
   vote_count: number;
   percentage: number;
 }
