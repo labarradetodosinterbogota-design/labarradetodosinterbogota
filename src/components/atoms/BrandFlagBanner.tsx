@@ -21,7 +21,7 @@ export const BrandFlagBanner: React.FC<BrandFlagBannerProps> = ({ className = ''
           alt={`Bandera ${BAR_OFFICIAL_NAME}`}
           decoding="async"
           loading="lazy"
-          className="mx-auto h-20 w-auto max-w-full object-contain sm:h-24 md:h-28"
+          className="block h-auto w-full rounded-lg object-contain"
         />
       </picture>
     </div>

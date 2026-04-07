@@ -26,7 +26,7 @@ export const BrandMark: React.FC<BrandMarkProps> = ({ variant = 'onLight' }) => 
         width={44}
         height={44}
         decoding="async"
-        className="h-full w-full scale-[1.08] object-cover"
+        className="h-full w-full object-contain p-0.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
         onError={(event) => {
           const target = event.currentTarget;
           if (target.src.endsWith(BAR_SHIELD_FALLBACK_ASSET_PATH)) return;
