@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Alert, BrandMark } from '../../components/atoms';
-import { Download, Share2 } from 'lucide-react';
+import { Download, Image as ImageIcon, Share2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -9,24 +9,32 @@ import {
   BAR_SHIELD_FALLBACK_ASSET_PATH,
 } from '../../constants/brand';
 
+const loadImageAsset = (src: string): Promise<HTMLImageElement> =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.crossOrigin = 'anonymous';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('No se pudo cargar el logo.'));
+    image.src = src;
+  });
+
+async function loadBrandLogoImage(): Promise<HTMLImageElement | null> {
+  try {
+    return await loadImageAsset(BAR_SHIELD_ASSET_PATH);
+  } catch {
+    try {
+      return await loadImageAsset(BAR_SHIELD_FALLBACK_ASSET_PATH);
+    } catch {
+      return null;
+    }
+  }
+}
+
 async function getBrandLogoDataUrl(): Promise<string | null> {
   try {
-    const loadImage = (src: string): Promise<HTMLImageElement> =>
-      new Promise<HTMLImageElement>((resolve, reject) => {
-        const img = new Image();
-        img.decoding = 'async';
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('No se pudo cargar el logo.'));
-        img.src = src;
-      });
-
-    let image: HTMLImageElement;
-    try {
-      image = await loadImage(BAR_SHIELD_ASSET_PATH);
-    } catch {
-      image = await loadImage(BAR_SHIELD_FALLBACK_ASSET_PATH);
-    }
+    const image = await loadBrandLogoImage();
+    if (!image) return null;
 
     const canvas = globalThis.document?.createElement('canvas');
     if (!canvas) return null;
@@ -43,16 +51,66 @@ async function getBrandLogoDataUrl(): Promise<string | null> {
   }
 }
 
+const drawRoundedRectPath = (
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+): void => {
+  const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
+  context.moveTo(x + safeRadius, y);
+  context.lineTo(x + width - safeRadius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  context.lineTo(x + width, y + height - safeRadius);
+  context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  context.lineTo(x + safeRadius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  context.lineTo(x, y + safeRadius);
+  context.quadraticCurveTo(x, y, x + safeRadius, y);
+};
+
+const fillRoundedRect = (
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+): void => {
+  context.beginPath();
+  drawRoundedRectPath(context, x, y, width, height, radius);
+  context.closePath();
+  context.fill();
+};
+
+const fitTextToWidth = (
+  context: CanvasRenderingContext2D,
+  rawText: string,
+  maxWidth: number
+): string => {
+  const text = rawText.trim();
+  if (context.measureText(text).width <= maxWidth) return text;
+  let sliced = text;
+  while (sliced.length > 0 && context.measureText(`${sliced}...`).width > maxWidth) {
+    sliced = sliced.slice(0, -1);
+  }
+  return sliced.length > 0 ? `${sliced}...` : text;
+};
+
 const CARD_SHIELD_PATTERN_STYLE: Readonly<React.CSSProperties> = {
   backgroundImage: `image-set(url("${BAR_SHIELD_ASSET_PATH}") type("image/webp"), url("${BAR_SHIELD_FALLBACK_ASSET_PATH}") type("image/png"))`,
   backgroundRepeat: 'repeat',
   backgroundPosition: 'center',
   backgroundSize: '56px 56px',
 };
+const MEMBERSHIP_FONT_STACK = 'Inter, "Segoe UI", Arial, sans-serif';
 
 export const MembershipCard: React.FC = () => {
   const { user } = useAuth();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloadingFrontImage, setIsDownloadingFrontImage] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
@@ -188,6 +246,128 @@ export const MembershipCard: React.FC = () => {
     }
   };
 
+  const handleDownloadFrontImage = async () => {
+    setFeedback(null);
+    setIsDownloadingFrontImage(true);
+    try {
+      const canvas = globalThis.document?.createElement('canvas');
+      if (!canvas) {
+        throw new Error('No se pudo iniciar el canvas de descarga.');
+      }
+      const context = canvas.getContext('2d');
+      if (!context) {
+        throw new Error('No se pudo inicializar el contexto gráfico.');
+      }
+
+      const width = 1400;
+      const height = 860;
+      canvas.width = width;
+      canvas.height = height;
+
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+
+      const backgroundGradient = context.createLinearGradient(0, 0, width, height);
+      backgroundGradient.addColorStop(0, '#121722');
+      backgroundGradient.addColorStop(0.55, '#1C2330');
+      backgroundGradient.addColorStop(1, '#0F1521');
+      context.fillStyle = backgroundGradient;
+      context.fillRect(0, 0, width, height);
+
+      const logoImage = await loadBrandLogoImage();
+      if (logoImage) {
+        const tileSize = 96;
+        context.globalAlpha = 0.11;
+        for (let y = -24; y < height + tileSize; y += tileSize) {
+          for (let x = -24; x < width + tileSize; x += tileSize) {
+            context.drawImage(logoImage, x, y, tileSize, tileSize);
+          }
+        }
+        context.globalAlpha = 1;
+      }
+
+      context.fillStyle = 'rgba(255,255,255,0.08)';
+      fillRoundedRect(context, 44, 44, width - 88, height - 88, 28);
+      context.fillStyle = 'rgba(255,255,255,0.07)';
+      fillRoundedRect(context, 76, 198, width - 152, 320, 24);
+
+      context.fillStyle = '#FFFFFF';
+      context.font = `700 56px ${MEMBERSHIP_FONT_STACK}`;
+      context.fillText(BAR_OFFICIAL_NAME, 86, 128, width - 340);
+      context.fillStyle = 'rgba(255,255,255,0.82)';
+      context.font = `500 30px ${MEMBERSHIP_FONT_STACK}`;
+      context.fillText('Carné de integrante (frontal)', 86, 172);
+
+      context.fillStyle = 'rgba(255,255,255,0.9)';
+      fillRoundedRect(context, width - 220, 78, 130, 130, 18);
+      if (logoImage) {
+        context.drawImage(logoImage, width - 205, 93, 100, 100);
+      }
+
+      context.fillStyle = 'rgba(255,255,255,0.18)';
+      fillRoundedRect(context, width - 220, 224, 130, 42, 12);
+      context.textAlign = 'center';
+      context.fillStyle = '#FFFFFF';
+      context.font = `700 24px ${MEMBERSHIP_FONT_STACK}`;
+      context.fillText(initials, width - 155, 252);
+      context.textAlign = 'left';
+
+      context.fillStyle = 'rgba(255,255,255,0.72)';
+      context.font = `600 18px ${MEMBERSHIP_FONT_STACK}`;
+      context.fillText('NOMBRE', 102, 248);
+      context.fillStyle = '#FFFFFF';
+      context.font = `700 44px ${MEMBERSHIP_FONT_STACK}`;
+      const fittedName = fitTextToWidth(context, user.full_name, width - 214);
+      context.fillText(fittedName, 102, 304);
+
+      context.strokeStyle = 'rgba(255,255,255,0.2)';
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(96, 352);
+      context.lineTo(width - 96, 352);
+      context.stroke();
+
+      context.fillStyle = 'rgba(255,255,255,0.72)';
+      context.font = `600 18px ${MEMBERSHIP_FONT_STACK}`;
+      context.fillText('CARNÉ', 102, 404);
+      context.fillText('INTEGRANTE DESDE', 740, 404);
+
+      context.fillStyle = '#FFFFFF';
+      context.font = `700 38px ${MEMBERSHIP_FONT_STACK}`;
+      context.fillText(user.member_id, 102, 456, 560);
+      context.fillText(String(joinYear), 740, 456);
+
+      context.fillStyle = 'rgba(255,255,255,0.74)';
+      context.font = `500 20px ${MEMBERSHIP_FONT_STACK}`;
+      context.fillText('Versión frontal del carné (sin QR de verificación).', 86, height - 86);
+
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((result) => resolve(result), 'image/png');
+      });
+      if (!blob) {
+        throw new Error('No se pudo generar la imagen del carné.');
+      }
+
+      const safeMemberId = user.member_id.replace(/[^a-zA-Z0-9-_]/g, '');
+      const fileName = `carne-frontal-${safeMemberId || user.id}.png`;
+      const downloadUrl = globalThis.URL.createObjectURL(blob);
+      const anchor = globalThis.document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = fileName;
+      anchor.click();
+      globalThis.URL.revokeObjectURL(downloadUrl);
+
+      setFeedback({ type: 'success', message: 'Imagen frontal del carné descargada correctamente.' });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error('Membership image download error:', err);
+      }
+      setFeedback({ type: 'error', message: 'No se pudo descargar la imagen frontal del carné.' });
+    } finally {
+      setIsDownloadingFrontImage(false);
+    }
+  };
+
   const handleShareCard = async () => {
     setFeedback(null);
     setIsSharing(true);
@@ -314,10 +494,23 @@ export const MembershipCard: React.FC = () => {
               void handleDownloadPDF();
             }}
             isLoading={isDownloading}
-            disabled={isSharing}
+            disabled={isSharing || isDownloadingFrontImage}
           >
             <Download className="w-4 h-4 mr-2" />
             Descargar PDF
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            type="button"
+            onClick={() => {
+              void handleDownloadFrontImage();
+            }}
+            isLoading={isDownloadingFrontImage}
+            disabled={isDownloading || isSharing}
+          >
+            <ImageIcon className="w-4 h-4 mr-2" />
+            Descargar imagen frontal
           </Button>
           <Button
             variant="secondary"
@@ -327,7 +520,7 @@ export const MembershipCard: React.FC = () => {
               void handleShareCard();
             }}
             isLoading={isSharing}
-            disabled={isDownloading}
+            disabled={isDownloading || isDownloadingFrontImage}
           >
             <Share2 className="w-4 h-4 mr-2" />
             Compartir carné

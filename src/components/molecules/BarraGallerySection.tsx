@@ -56,24 +56,28 @@ export const BarraGallerySection: React.FC = () => {
             const url = galleryService.getPublicUrl(item.storage_path);
             const label = item.caption?.trim() || 'Foto de la barra popular';
             return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setActiveUrl(url);
-                  setActiveAlt(label);
-                }}
-                aria-label={`Ampliar: ${label}`}
-                className="group relative aspect-square overflow-hidden rounded-xl border border-dark-200 bg-dark-900 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
-              >
-                <img
-                  src={url}
-                  alt={label}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </button>
+              <article key={item.id} className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveUrl(url);
+                    setActiveAlt(label);
+                  }}
+                  aria-label={`Ampliar: ${label}`}
+                  className="group relative aspect-square w-full overflow-hidden rounded-xl border border-dark-200 bg-dark-900 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
+                >
+                  <img
+                    src={url}
+                    alt={label}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </button>
+                <p className="min-h-10 rounded-lg border border-dark-200 bg-white/95 px-2 py-1.5 text-left text-xs font-medium leading-5 text-dark-700 shadow-sm line-clamp-2">
+                  {label}
+                </p>
+              </article>
             );
           })}
         </div>
@@ -84,26 +88,31 @@ export const BarraGallerySection: React.FC = () => {
         className="max-h-[95vh] max-w-[95vw] border-0 bg-transparent p-4 backdrop:bg-black/90 open:flex open:items-center open:justify-center"
         onClose={closeLightbox}
         aria-label={activeAlt || 'Vista ampliada'}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) e.currentTarget.close();
-        }}
       >
         {activeUrl ? (
-          <div className="relative flex max-h-[90vh] max-w-full flex-col items-center">
+          <>
             <button
               type="button"
-              className="absolute -right-1 -top-10 z-10 rounded-lg bg-white/10 p-2 text-white hover:bg-white/20 sm:-right-2 sm:-top-2"
+              className="fixed inset-0 cursor-default"
               aria-label="Cerrar vista ampliada"
               onClick={() => lightboxRef.current?.close()}
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <img
-              src={activeUrl}
-              alt={activeAlt}
-              className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl"
             />
-          </div>
+            <div className="relative z-10 flex max-h-[90vh] max-w-full flex-col items-center">
+              <button
+                type="button"
+                className="absolute -right-1 -top-10 z-20 rounded-lg bg-white/10 p-2 text-white hover:bg-white/20 sm:-right-2 sm:-top-2"
+                aria-label="Cerrar vista ampliada"
+                onClick={() => lightboxRef.current?.close()}
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <img
+                src={activeUrl}
+                alt={activeAlt}
+                className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl"
+              />
+            </div>
+          </>
         ) : null}
       </dialog>
     </section>
