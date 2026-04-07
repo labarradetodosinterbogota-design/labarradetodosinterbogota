@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageCircle, SendHorizontal } from 'lucide-react';
+import { MessageCircle, SendHorizontal, Video } from 'lucide-react';
 import { Alert, Avatar, Badge, Button, Input, Select, Spinner, TextArea } from '../../components/atoms';
 import { Pagination, SearchBar } from '../../components/molecules';
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +11,8 @@ const COMMENTS_PER_PAGE = 20;
 const CONTENT_PREVIEW_MAX_CHARS = 380;
 const DEFAULT_POST_CATEGORY = FORUM_CATEGORY_OPTIONS[0]?.value ?? 'general';
 const FORUM_POST_CATEGORY_OPTIONS = [...FORUM_CATEGORY_OPTIONS];
+const DEFAULT_FORUM_MEET_URL = 'https://meet.google.com/new';
+const FORUM_MEET_HOST = 'meet.google.com';
 
 const FORUM_FILTER_CATEGORY_OPTIONS = [
   { value: '', label: 'Todas las categorías' },
@@ -51,6 +53,26 @@ function toContentPreview(content: string): string {
   return `${content.slice(0, CONTENT_PREVIEW_MAX_CHARS)}...`;
 }
 
+function getForumMeetUrlConfig(): { url: string; isFallback: boolean } {
+  const configuredUrl = import.meta.env.VITE_FORUM_MEET_URL?.trim();
+  if (!configuredUrl) {
+    return { url: DEFAULT_FORUM_MEET_URL, isFallback: true };
+  }
+
+  try {
+    const parsedUrl = new URL(configuredUrl);
+    const isSecureMeetUrl =
+      parsedUrl.protocol === 'https:' && parsedUrl.hostname.toLowerCase() === FORUM_MEET_HOST;
+    if (!isSecureMeetUrl) {
+      return { url: DEFAULT_FORUM_MEET_URL, isFallback: true };
+    }
+
+    return { url: parsedUrl.toString(), isFallback: false };
+  } catch {
+    return { url: DEFAULT_FORUM_MEET_URL, isFallback: true };
+  }
+}
+
 export const Forum: React.FC = () => {
   const { user } = useAuth();
   const [page, setPage] = React.useState(1);
@@ -63,6 +85,7 @@ export const Forum: React.FC = () => {
   const [newPostCategory, setNewPostCategory] = React.useState(DEFAULT_POST_CATEGORY);
   const [newPostContent, setNewPostContent] = React.useState('');
   const [newCommentContent, setNewCommentContent] = React.useState('');
+  const forumMeetConfig = React.useMemo(() => getForumMeetUrlConfig(), []);
 
   const postsQuery = useForumPosts(page, POSTS_PER_PAGE, searchQuery, categoryFilter);
   const commentsQuery = useForumComments(activePostId, commentsPage, COMMENTS_PER_PAGE);
@@ -137,6 +160,10 @@ export const Forum: React.FC = () => {
     } catch {
       // Error surfaced through createCommentMutation state.
     }
+  };
+
+  const onJoinForumMeet = () => {
+    window.open(forumMeetConfig.url, '_blank', 'noopener,noreferrer');
   };
 
   const postErrorMessage =
@@ -370,6 +397,23 @@ export const Forum: React.FC = () => {
         <p className="text-dark-600">
           Espacio de conversación entre integrantes. Diseñado para discusiones activas de toda la barra.
         </p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-dark-600">
+            ¿Prefieren resolver un tema en vivo? Ingresen a la videollamada oficial del foro.
+          </p>
+          <Button type="button" variant="secondary" onClick={onJoinForumMeet}>
+            <span className="inline-flex items-center gap-2">
+              <Video className="h-4 w-4" aria-hidden />
+              Unirse por Google Meet
+            </span>
+          </Button>
+        </div>
+        {forumMeetConfig.isFallback && (
+          <p className="mt-2 text-xs text-dark-500">
+            Para usar una sala fija del equipo, configura <code>VITE_FORUM_MEET_URL</code> con tu enlace
+            de Meet.
+          </p>
+        )}
       </div>
 
       {!user && (
