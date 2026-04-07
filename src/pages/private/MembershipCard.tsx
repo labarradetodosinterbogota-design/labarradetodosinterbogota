@@ -113,7 +113,7 @@ const fitTextToWidth = (
   return sliced.length > 0 ? `${sliced}...` : text;
 };
 
-const drawImageContained = (
+const drawImageCover = (
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
   x: number,
@@ -132,11 +132,11 @@ const drawImageContained = (
   let drawY = y;
 
   if (sourceRatio > targetRatio) {
-    drawHeight = width / sourceRatio;
-    drawY = y + (height - drawHeight) / 2;
-  } else {
     drawWidth = height * sourceRatio;
-    drawX = x + (width - drawWidth) / 2;
+    drawX = x - (drawWidth - width) / 2;
+  } else {
+    drawHeight = width / sourceRatio;
+    drawY = y - (drawHeight - height) / 2;
   }
 
   context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
@@ -389,7 +389,7 @@ export const MembershipCard: React.FC = () => {
         drawRoundedRectPath(context, 92, height - 190, width - 184, 70, 12);
         context.closePath();
         context.clip();
-        drawImageContained(context, flagImage, 92, height - 190, width - 184, 70);
+        drawImageCover(context, flagImage, 92, height - 190, width - 184, 70);
         context.restore();
       }
 
@@ -539,7 +539,7 @@ export const MembershipCard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 overflow-hidden rounded-lg border border-white/25 bg-white/95 p-1.5">
+              <div className="mt-4 overflow-hidden rounded-lg border border-white/25 bg-white/95 p-1">
                 <picture>
                   <source srcSet={BAR_FLAG_BANNER_ASSET_PATH} type="image/webp" />
                   <img
@@ -547,7 +547,7 @@ export const MembershipCard: React.FC = () => {
                     alt={`Bandera ${BAR_OFFICIAL_NAME}`}
                     loading="lazy"
                     decoding="async"
-                    className="h-14 w-full object-contain"
+                    className="h-16 w-full object-cover object-center sm:h-20"
                   />
                 </picture>
               </div>
