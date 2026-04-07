@@ -113,7 +113,7 @@ const fitTextToWidth = (
   return sliced.length > 0 ? `${sliced}...` : text;
 };
 
-const drawImageCover = (
+const drawImageFill = (
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
   x: number,
@@ -121,25 +121,7 @@ const drawImageCover = (
   width: number,
   height: number
 ): void => {
-  const sourceWidth = image.naturalWidth || image.width || 1;
-  const sourceHeight = image.naturalHeight || image.height || 1;
-  const sourceRatio = sourceWidth / sourceHeight;
-  const targetRatio = width / height;
-
-  let drawWidth = width;
-  let drawHeight = height;
-  let drawX = x;
-  let drawY = y;
-
-  if (sourceRatio > targetRatio) {
-    drawWidth = height * sourceRatio;
-    drawX = x - (drawWidth - width) / 2;
-  } else {
-    drawHeight = width / sourceRatio;
-    drawY = y - (drawHeight - height) / 2;
-  }
-
-  context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+  context.drawImage(image, x, y, width, height);
 };
 
 const CARD_SHIELD_PATTERN_STYLE: Readonly<React.CSSProperties> = {
@@ -383,13 +365,13 @@ export const MembershipCard: React.FC = () => {
 
       if (flagImage) {
         context.fillStyle = 'rgba(255,255,255,0.92)';
-        fillRoundedRect(context, 86, height - 196, width - 172, 82, 16);
+        fillRoundedRect(context, 86, height - 206, width - 172, 94, 16);
         context.save();
         context.beginPath();
-        drawRoundedRectPath(context, 92, height - 190, width - 184, 70, 12);
+        drawRoundedRectPath(context, 92, height - 200, width - 184, 82, 12);
         context.closePath();
         context.clip();
-        drawImageCover(context, flagImage, 92, height - 190, width - 184, 70);
+        drawImageFill(context, flagImage, 92, height - 200, width - 184, 82);
         context.restore();
       }
 
@@ -547,7 +529,7 @@ export const MembershipCard: React.FC = () => {
                     alt={`Bandera ${BAR_OFFICIAL_NAME}`}
                     loading="lazy"
                     decoding="async"
-                    className="h-16 w-full object-cover object-center sm:h-20"
+                    className="h-auto w-full object-contain"
                   />
                 </picture>
               </div>
