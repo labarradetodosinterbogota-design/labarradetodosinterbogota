@@ -13,20 +13,20 @@ type BrandMarkProps = {
 export const BrandMark: React.FC<BrandMarkProps> = ({ variant = 'onLight' }) => {
   const frame =
     variant === 'onDark'
-      ? 'border border-white/20 bg-white shadow-sm'
-      : 'border border-dark-200/80 bg-white shadow-sm';
+      ? 'border border-white/25 bg-white shadow-sm'
+      : 'border border-dark-200/90 bg-white shadow-sm';
 
   return (
     <div
-      className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg ${frame}`}
+      className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl ${frame}`}
     >
       <img
         src={BAR_SHIELD_ASSET_PATH}
         alt={`Escudo ${BAR_OFFICIAL_NAME}`}
-        width={40}
-        height={40}
+        width={44}
+        height={44}
         decoding="async"
-        className="h-full w-full object-contain p-0.5"
+        className="h-full w-full scale-[1.08] object-cover"
         onError={(event) => {
           const target = event.currentTarget;
           if (target.src.endsWith(BAR_SHIELD_FALLBACK_ASSET_PATH)) return;
