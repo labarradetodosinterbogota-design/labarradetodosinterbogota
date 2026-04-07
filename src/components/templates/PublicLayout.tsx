@@ -70,6 +70,20 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
               >
                 Calendario
               </Link>
+              <Link
+                to="/register"
+                className="text-white hover:text-primary-400 transition-colors sm:hidden"
+                onClick={closeMenu}
+              >
+                Registrarse
+              </Link>
+              <Link
+                to="/login"
+                className="text-white hover:text-primary-400 transition-colors sm:hidden"
+                onClick={closeMenu}
+              >
+                Iniciar sesión
+              </Link>
             </nav>
 
             <div className="hidden sm:flex gap-2">
