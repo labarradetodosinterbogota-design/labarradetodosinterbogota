@@ -113,7 +113,7 @@ const fitTextToWidth = (
   return sliced.length > 0 ? `${sliced}...` : text;
 };
 
-const drawImageFill = (
+const drawImageContained = (
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
   x: number,
@@ -121,7 +121,25 @@ const drawImageFill = (
   width: number,
   height: number
 ): void => {
-  context.drawImage(image, x, y, width, height);
+  const sourceWidth = image.naturalWidth || image.width || 1;
+  const sourceHeight = image.naturalHeight || image.height || 1;
+  const sourceRatio = sourceWidth / sourceHeight;
+  const targetRatio = width / height;
+
+  let drawWidth = width;
+  let drawHeight = height;
+  let drawX = x;
+  let drawY = y;
+
+  if (sourceRatio > targetRatio) {
+    drawHeight = width / sourceRatio;
+    drawY = y + (height - drawHeight) / 2;
+  } else {
+    drawWidth = height * sourceRatio;
+    drawX = x + (width - drawWidth) / 2;
+  }
+
+  context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
 };
 
 const CARD_SHIELD_PATTERN_STYLE: Readonly<React.CSSProperties> = {
@@ -364,14 +382,41 @@ export const MembershipCard: React.FC = () => {
       context.fillText(String(joinYear), 740, 456);
 
       if (flagImage) {
+        const flagContainerWidth = 560;
+        const flagContainerHeight = 176;
+        const flagContainerX = (width - flagContainerWidth) / 2;
+        const flagContainerY = height - 286;
+        const flagInnerPadding = 8;
+
         context.fillStyle = 'rgba(255,255,255,0.92)';
-        fillRoundedRect(context, 86, height - 206, width - 172, 94, 16);
+        fillRoundedRect(
+          context,
+          flagContainerX,
+          flagContainerY,
+          flagContainerWidth,
+          flagContainerHeight,
+          16
+        );
         context.save();
         context.beginPath();
-        drawRoundedRectPath(context, 92, height - 200, width - 184, 82, 12);
+        drawRoundedRectPath(
+          context,
+          flagContainerX + flagInnerPadding,
+          flagContainerY + flagInnerPadding,
+          flagContainerWidth - flagInnerPadding * 2,
+          flagContainerHeight - flagInnerPadding * 2,
+          12
+        );
         context.closePath();
         context.clip();
-        drawImageFill(context, flagImage, 92, height - 200, width - 184, 82);
+        drawImageContained(
+          context,
+          flagImage,
+          flagContainerX + flagInnerPadding,
+          flagContainerY + flagInnerPadding,
+          flagContainerWidth - flagInnerPadding * 2,
+          flagContainerHeight - flagInnerPadding * 2
+        );
         context.restore();
       }
 
