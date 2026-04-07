@@ -7,3 +7,4 @@ export { Select } from './Select';
 export { Alert } from './Alert';
 export { Spinner } from './Spinner';
 export { BrandMark } from './BrandMark';
+export { BrandFlagBanner } from './BrandFlagBanner';

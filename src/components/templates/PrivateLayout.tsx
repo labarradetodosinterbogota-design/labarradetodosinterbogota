@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, Users, FileText, Vote, MessageCircle, Banknote, Calendar } from 'lucide-react';
-import { Button, Avatar, BrandMark } from '../atoms';
+import { Button, Avatar, BrandFlagBanner, BrandMark } from '../atoms';
 import { useAuth } from '../../context/AuthContext';
 import { BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
 
@@ -218,6 +218,10 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
           </div>
         </div>
       </header>
+
+      <div className="max-w-7xl mx-auto w-full px-4 pt-6">
+        <BrandFlagBanner />
+      </div>
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
         {children}

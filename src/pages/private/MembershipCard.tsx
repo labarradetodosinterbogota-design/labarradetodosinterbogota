@@ -3,18 +3,30 @@ import { Button, Alert, BrandMark } from '../../components/atoms';
 import { Download, Share2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../../context/AuthContext';
-import { BAR_OFFICIAL_NAME } from '../../constants/brand';
+import {
+  BAR_OFFICIAL_NAME,
+  BAR_SHIELD_ASSET_PATH,
+  BAR_SHIELD_FALLBACK_ASSET_PATH,
+} from '../../constants/brand';
 
 async function getBrandLogoDataUrl(): Promise<string | null> {
   try {
-    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-      img.decoding = 'async';
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('No se pudo cargar el logo.'));
-      img.src = '/favicon.svg';
-    });
+    const loadImage = (src: string): Promise<HTMLImageElement> =>
+      new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('No se pudo cargar el logo.'));
+        img.src = src;
+      });
+
+    let image: HTMLImageElement;
+    try {
+      image = await loadImage(BAR_SHIELD_ASSET_PATH);
+    } catch {
+      image = await loadImage(BAR_SHIELD_FALLBACK_ASSET_PATH);
+    }
 
     const canvas = globalThis.document?.createElement('canvas');
     if (!canvas) return null;
@@ -30,6 +42,13 @@ async function getBrandLogoDataUrl(): Promise<string | null> {
     return null;
   }
 }
+
+const CARD_SHIELD_PATTERN_STYLE: Readonly<React.CSSProperties> = {
+  backgroundImage: `image-set(url("${BAR_SHIELD_ASSET_PATH}") type("image/webp"), url("${BAR_SHIELD_FALLBACK_ASSET_PATH}") type("image/png"))`,
+  backgroundRepeat: 'repeat',
+  backgroundPosition: 'center',
+  backgroundSize: '56px 56px',
+};
 
 export const MembershipCard: React.FC = () => {
   const { user } = useAuth();
@@ -229,45 +248,57 @@ export const MembershipCard: React.FC = () => {
         {feedback && <Alert type={feedback.type} message={feedback.message} onClose={() => setFeedback(null)} />}
 
         <div className="perspective">
-          <div className="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 rounded-xl p-8 text-white shadow-2xl max-w-md mx-auto">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h3 className="font-bold text-amber-300">{BAR_OFFICIAL_NAME}</h3>
-                <p className="text-sm text-dark-100">Carné de integrante</p>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <BrandMark variant="onDark" />
-                <div className="rounded-md bg-black px-2 py-1 text-xs font-bold tracking-wider text-white">
-                  {initials}
-                </div>
-              </div>
-            </div>
+          <div className="relative max-w-md mx-auto overflow-hidden rounded-xl border border-white/25 bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 p-8 text-white shadow-2xl">
+            <div
+              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent"
+              aria-hidden="true"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.12]"
+              style={CARD_SHIELD_PATTERN_STYLE}
+              aria-hidden="true"
+            />
 
-            <div className="rounded-lg border border-amber-300 bg-amber-400 p-4 mb-6 space-y-3">
-              <div className="rounded-md bg-black px-3 py-2">
-                <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Nombre</p>
-                <p className="text-base font-bold text-white">{user.full_name}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-md bg-black px-3 py-2">
-                  <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Carné</p>
-                  <p className="font-mono font-bold text-white">{user.member_id}</p>
+            <div className="relative z-10">
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <h3 className="font-bold text-white">{BAR_OFFICIAL_NAME}</h3>
+                  <p className="text-sm text-white/80">Carné de integrante</p>
                 </div>
-                <div className="rounded-md bg-black px-3 py-2">
-                  <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Integrante desde</p>
-                  <p className="font-bold text-white">{new Date(user.join_date).getFullYear()}</p>
+                <div className="flex flex-col items-end gap-2">
+                  <BrandMark variant="onDark" />
+                  <div className="rounded-md border border-white/30 bg-white/10 px-2 py-1 text-xs font-bold tracking-wider text-white">
+                    {initials}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="rounded-lg border border-amber-300 bg-amber-400 p-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-dark-900">
-                Código QR de verificación
-              </p>
-              <div className="rounded-md bg-black p-3">
-                <div className="flex h-28 w-full items-center justify-center rounded border border-white/20 bg-black px-2">
-                  <div className="rounded-md bg-white p-2 shadow-sm">
-                    <QRCodeSVG value={qrValue} size={96} bgColor="#ffffff" fgColor="#000000" level="M" />
+              <div className="mb-6 space-y-3 rounded-lg border border-white/25 bg-white/5 p-4">
+                <div className="rounded-md border border-white/20 px-3 py-2">
+                  <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Nombre</p>
+                  <p className="text-base font-bold text-white">{user.full_name}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-md border border-white/20 px-3 py-2">
+                    <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Carné</p>
+                    <p className="font-mono font-bold text-white">{user.member_id}</p>
+                  </div>
+                  <div className="rounded-md border border-white/20 px-3 py-2">
+                    <p className="mb-1 text-[11px] uppercase tracking-wide text-white/70">Integrante desde</p>
+                    <p className="font-bold text-white">{new Date(user.join_date).getFullYear()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-white/25 bg-white/5 p-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/85">
+                  Código QR de verificación
+                </p>
+                <div className="rounded-md border border-white/20 bg-white/5 p-3">
+                  <div className="flex h-28 w-full items-center justify-center rounded border border-white/20 bg-white/5 px-2">
+                    <div className="rounded-md bg-white p-2 shadow-sm">
+                      <QRCodeSVG value={qrValue} size={96} bgColor="#ffffff" fgColor="#000000" level="M" />
+                    </div>
                   </div>
                 </div>
               </div>
