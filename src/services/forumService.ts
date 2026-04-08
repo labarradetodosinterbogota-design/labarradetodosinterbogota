@@ -1,6 +1,5 @@
 import { ForumComment, ForumPost, PaginatedResponse, User, UserRole, UserStatus } from '../types';
 import { supabase } from './supabaseClient';
-import { runExactCount } from '../utils/supabaseExactCount';
 import { sanitizeIlikeSearchInput } from '../utils/sanitizeSearch';
 
 interface ForumPostRow {
@@ -20,6 +19,11 @@ interface ForumCommentRow {
   content: string;
   created_at: string;
   updated_at: string;
+}
+
+interface ForumCommentCountRow {
+  post_id: string;
+  comment_count: number | string | null;
 }
 
 interface ForumPostListInput {
@@ -144,10 +148,45 @@ async function fetchAuthorsByIds(userIds: string[]): Promise<ForumAuthorMap> {
 
 async function fetchCommentCountsForPosts(postIds: string[]): Promise<Record<string, number>> {
   const uniquePostIds = Array.from(new Set(postIds.filter((id) => id.length > 0)));
+  if (uniquePostIds.length === 0) return {};
+
+  try {
+    return await fetchCommentCountsForPostsByRpc(uniquePostIds);
+  } catch (rpcError) {
+    if (import.meta.env.DEV) {
+      console.warn('Forum comment count RPC unavailable, using fallback counts:', rpcError);
+    }
+    return fetchCommentCountsForPostsFallback(uniquePostIds);
+  }
+}
+
+async function fetchCommentCountsForPostsByRpc(postIds: string[]): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc('forum_comment_counts_by_post_ids', {
+    post_ids: postIds,
+  });
+  if (error) throw error;
+
+  const counts: Record<string, number> = {};
+  for (const postId of postIds) {
+    counts[postId] = 0;
+  }
+
+  for (const row of (data ?? []) as ForumCommentCountRow[]) {
+    if (typeof row.post_id !== 'string') continue;
+    const parsedCount = Number(row.comment_count ?? 0);
+    counts[row.post_id] =
+      Number.isFinite(parsedCount) && parsedCount > 0 ? Math.floor(parsedCount) : 0;
+  }
+  return counts;
+}
+
+async function fetchCommentCountsForPostsFallback(
+  postIds: string[]
+): Promise<Record<string, number>> {
   const counts: Record<string, number> = {};
 
   await Promise.all(
-    uniquePostIds.map(async (postId) => {
+    postIds.map(async (postId) => {
       const { count, error } = await supabase
         .from('forum_comments')
         .select('id', { count: 'exact', head: true })
@@ -156,7 +195,6 @@ async function fetchCommentCountsForPosts(postIds: string[]): Promise<Record<str
       counts[postId] = count ?? 0;
     })
   );
-
   return counts;
 }
 
@@ -228,16 +266,9 @@ export const forumService = {
     const hasSearch = search.length > 0;
     const pattern = `%${search}%`;
 
-    const total = await runExactCount('forum_posts', (q) => {
-      let built = q;
-      if (categoryFilter) built = built.eq('category', categoryFilter);
-      if (hasSearch) built = built.or(`title.ilike.${pattern},content.ilike.${pattern}`);
-      return built;
-    });
-
     let query = supabase
       .from('forum_posts')
-      .select('id,user_id,title,content,category,created_at,updated_at');
+      .select('id,user_id,title,content,category,created_at,updated_at', { count: 'exact' });
 
     if (categoryFilter) {
       query = query.eq('category', categoryFilter);
@@ -246,11 +277,12 @@ export const forumService = {
       query = query.or(`title.ilike.${pattern},content.ilike.${pattern}`);
     }
 
-    const { data, error } = await query
+    const { data, error, count } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (error) throw error;
+    const total = count ?? 0;
     const rows = (data ?? []) as ForumPostRow[];
     if (rows.length === 0) return buildPaginatedResponse([], page, limit, total);
 
@@ -277,21 +309,15 @@ export const forumService = {
     const normalizedLimit = normalizeLimit(limit);
     const offset = (normalizedPage - 1) * normalizedLimit;
 
-    const { count, error: countError } = await supabase
+    const { data, error, count } = await supabase
       .from('forum_comments')
-      .select('id', { count: 'exact', head: true })
-      .eq('post_id', normalizedPostId);
-    if (countError) throw countError;
-    const total = count ?? 0;
-
-    const { data, error } = await supabase
-      .from('forum_comments')
-      .select('id,post_id,user_id,content,created_at,updated_at')
+      .select('id,post_id,user_id,content,created_at,updated_at', { count: 'exact' })
       .eq('post_id', normalizedPostId)
       .order('created_at', { ascending: false })
       .range(offset, offset + normalizedLimit - 1);
     if (error) throw error;
 
+    const total = count ?? 0;
     const rows = (data ?? []) as ForumCommentRow[];
     if (rows.length === 0) return buildPaginatedResponse([], normalizedPage, normalizedLimit, total);
 

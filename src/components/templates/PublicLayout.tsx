@@ -79,7 +79,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
               </Link>
               <Link
                 to="/login"
-                className="text-white hover:text-primary-400 transition-colors sm:hidden"
+                className="text-primary-400 hover:text-primary-300 transition-colors sm:hidden"
                 onClick={closeMenu}
               >
                 Iniciar sesión

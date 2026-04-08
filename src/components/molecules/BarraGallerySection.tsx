@@ -4,11 +4,22 @@ import { useBarraGallery } from '../../hooks';
 import { galleryService } from '../../services/galleryService';
 import { Spinner, Alert } from '../atoms';
 
+const INITIAL_VISIBLE_ITEMS = 8;
+const VISIBLE_ITEMS_STEP = 8;
+
 export const BarraGallerySection: React.FC = () => {
   const { data, isLoading, error } = useBarraGallery();
   const [activeUrl, setActiveUrl] = useState<string | null>(null);
   const [activeAlt, setActiveAlt] = useState('');
+  const [visibleItemsCount, setVisibleItemsCount] = useState(INITIAL_VISIBLE_ITEMS);
   const lightboxRef = useRef<HTMLDialogElement>(null);
+  const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
+  const galleryItems = React.useMemo(() => data ?? [], [data]);
+  const visibleItems = React.useMemo(
+    () => galleryItems.slice(0, visibleItemsCount),
+    [galleryItems, visibleItemsCount]
+  );
+  const hasMoreItems = visibleItemsCount < galleryItems.length;
 
   useEffect(() => {
     const el = lightboxRef.current;
@@ -24,6 +35,38 @@ export const BarraGallerySection: React.FC = () => {
     setActiveUrl(null);
     setActiveAlt('');
   };
+
+  useEffect(() => {
+    setVisibleItemsCount(INITIAL_VISIBLE_ITEMS);
+  }, [galleryItems.length]);
+
+  useEffect(() => {
+    if (!hasMoreItems) return;
+    const globalWindow = globalThis.window;
+    if (!globalWindow) return;
+
+    const IntersectionObserverCtor = globalThis.IntersectionObserver;
+    if (!IntersectionObserverCtor) {
+      setVisibleItemsCount(galleryItems.length);
+      return;
+    }
+
+    const trigger = loadMoreTriggerRef.current;
+    if (!trigger) return;
+
+    const observer = new IntersectionObserverCtor(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setVisibleItemsCount((previous) =>
+          Math.min(previous + VISIBLE_ITEMS_STEP, galleryItems.length)
+        );
+      },
+      { rootMargin: '220px 0px' }
+    );
+
+    observer.observe(trigger);
+    return () => observer.disconnect();
+  }, [galleryItems.length, hasMoreItems]);
 
   return (
     <section className="space-y-6" aria-labelledby="galeria-fotos-heading">
@@ -50,9 +93,9 @@ export const BarraGallerySection: React.FC = () => {
         </div>
       )}
 
-      {!isLoading && data && data.length > 0 && (
+      {!isLoading && galleryItems.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-          {data.map((item) => {
+          {visibleItems.map((item) => {
             const url = galleryService.getPublicUrl(item.storage_path);
             const label = item.caption?.trim() || 'Foto de la barra popular';
             return (
@@ -80,6 +123,11 @@ export const BarraGallerySection: React.FC = () => {
               </article>
             );
           })}
+        </div>
+      )}
+      {!isLoading && hasMoreItems && (
+        <div ref={loadMoreTriggerRef} className="flex justify-center py-2" aria-hidden="true">
+          <Spinner size="sm" />
         </div>
       )}
 

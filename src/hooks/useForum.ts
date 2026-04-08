@@ -2,6 +2,33 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { ForumComment, ForumPost, PaginatedResponse } from '../types';
 import { forumService } from '../services/forumService';
 
+const FORUM_POSTS_STALE_TIME_MS = 30_000;
+const FORUM_COMMENTS_STALE_TIME_MS = 20_000;
+const FORUM_QUERY_GC_TIME_MS = 5 * 60_000;
+
+function incrementPostCommentCount(
+  current: PaginatedResponse<ForumPost> | undefined,
+  postId: string
+): PaginatedResponse<ForumPost> | undefined {
+  if (!current) return current;
+
+  let hasChanges = false;
+  const updatedPosts = current.data.map((post) => {
+    if (post.id !== postId) return post;
+    hasChanges = true;
+    return {
+      ...post,
+      comment_count: post.comment_count + 1,
+    };
+  });
+
+  if (!hasChanges) return current;
+  return {
+    ...current,
+    data: updatedPosts,
+  };
+}
+
 export const useForumPosts = (
   page: number = 1,
   limit: number = 12,
@@ -21,7 +48,9 @@ export const useForumPosts = (
         category: normalizedCategory,
       }),
     placeholderData: keepPreviousData,
-    staleTime: 15_000,
+    staleTime: FORUM_POSTS_STALE_TIME_MS,
+    gcTime: FORUM_QUERY_GC_TIME_MS,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -35,6 +64,9 @@ export const useForumComments = (
     queryFn: () => forumService.listComments(postId ?? '', page, limit),
     enabled: !!postId,
     placeholderData: keepPreviousData,
+    staleTime: FORUM_COMMENTS_STALE_TIME_MS,
+    gcTime: FORUM_QUERY_GC_TIME_MS,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -54,9 +86,12 @@ export const useCreateForumComment = () => {
   return useMutation({
     mutationFn: (input: { postId: string; userId: string; content: string }) =>
       forumService.createComment(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['forum-comments'] });
-      void queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
+    onSuccess: (_createdComment, variables) => {
+      queryClient.setQueriesData<PaginatedResponse<ForumPost>>(
+        { queryKey: ['forum-posts'] },
+        (current) => incrementPostCommentCount(current, variables.postId)
+      );
+      void queryClient.invalidateQueries({ queryKey: ['forum-comments', variables.postId] });
     },
   });
 };
