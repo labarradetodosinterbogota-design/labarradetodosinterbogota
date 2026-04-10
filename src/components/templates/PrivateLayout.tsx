@@ -1,6 +1,17 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, Users, FileText, Vote, MessageCircle, Banknote, Calendar } from 'lucide-react';
+import {
+  Menu,
+  X,
+  LogOut,
+  Users,
+  FileText,
+  Vote,
+  MessageCircle,
+  MessagesSquare,
+  Banknote,
+  Calendar,
+} from 'lucide-react';
 import { Button, Avatar, BrandFlagBanner, BrandMark } from '../atoms';
 import { useAuth } from '../../context/AuthContext';
 import { BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
@@ -170,6 +181,14 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>Foro</span>
+              </Link>
+              <Link
+                to="/chat"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-dark-700 hover:bg-dark-100 hover:text-primary-400 transition-colors sm:rounded-none sm:px-0 sm:py-0 sm:text-dark-600 sm:hover:bg-transparent"
+                onClick={closeMenu}
+              >
+                <MessagesSquare className="w-4 h-4" />
+                <span>Chat en vivo</span>
               </Link>
               {isAdmin && (
                 <Link

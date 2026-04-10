@@ -7,6 +7,7 @@ export { useBarraGallery, useGalleryUpload, useGalleryDelete } from './useBarraG
 export { usePendingMembers, useApproveMember, useRejectMember } from './usePendingMembers';
 export { useSucceededContributions, useFinanceExpenses, useCreateFinanceExpense } from './useFinanceTransparency';
 export { useForumPosts, useForumComments, useCreateForumPost, useCreateForumComment } from './useForum';
+export { useLiveChat } from './useLiveChat';
 export {
   useInventoryItems,
   useCreateInventoryItem,

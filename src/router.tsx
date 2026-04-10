@@ -19,6 +19,7 @@ import { Members } from './pages/private/Members';
 import { Voting } from './pages/private/Voting';
 import { Documents } from './pages/private/Documents';
 import { Forum } from './pages/private/Forum';
+import { LiveChat } from './pages/private/LiveChat';
 import { MembershipCard } from './pages/private/MembershipCard';
 import { Contribute } from './pages/private/Contribute';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -181,6 +182,16 @@ export const Router: React.FC = () => {
             <ProtectedRoute>
               <PrivateLayout>
                 <Forum />
+              </PrivateLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <PrivateLayout>
+                <LiveChat />
               </PrivateLayout>
             </ProtectedRoute>
           }

@@ -233,6 +233,26 @@ export interface ForumComment {
   author: User;
 }
 
+/** Mensaje del chat en vivo (persistido en Supabase). */
+export interface ChatMessage {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  author_name: string;
+  author_photo_url: string | null;
+  /** Ruta en bucket `chat-images` (si el mensaje incluye imagen). */
+  image_storage_path: string | null;
+  /** URL pública para mostrar la imagen (derivada de `image_storage_path`). */
+  image_url: string | null;
+}
+
+/** Integrante activo para panel de presencia (en línea / fuera de línea en el chat). */
+export interface ChatMemberSummary {
+  id: string;
+  full_name: string;
+}
+
 export interface ApiResponse<T> {
   data: T | null;
   error: ApiError | null;

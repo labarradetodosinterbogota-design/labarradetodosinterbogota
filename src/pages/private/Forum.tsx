@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { MessageCircle, SendHorizontal, Video } from 'lucide-react';
 import { Alert, Avatar, Badge, Button, Input, Select, Spinner, TextArea } from '../../components/atoms';
 import { Pagination, SearchBar } from '../../components/molecules';
@@ -414,6 +415,16 @@ export const Forum: React.FC = () => {
             de Meet.
           </p>
         )}
+        <div className="mt-4 rounded-lg border border-primary-100 bg-primary-50/80 px-4 py-3 text-sm text-dark-800">
+          <p className="font-medium text-dark-900">¿Conversación al instante?</p>
+          <p className="mt-1 text-dark-700">
+            El foro es para temas e hilos. Para mensajes rápidos entre integrantes usa el{' '}
+            <Link to="/chat" className="font-semibold text-primary-600 underline-offset-2 hover:underline">
+              chat en vivo
+            </Link>
+            .
+          </p>
+        </div>
       </div>
 
       {!user && (
