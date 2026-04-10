@@ -5,7 +5,7 @@ import { useAllEvents, useCreateEvent } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
 import { eventTypeLabels } from '../../locales/es';
 import { eventService } from '../../services/eventService';
-import { EventType, type CalendarEvent } from '../../types';
+import { EventType, UserRole, type CalendarEvent } from '../../types';
 
 function toDatetimeLocalValue(isoDate: string): string {
   const date = new Date(isoDate);
@@ -31,6 +31,7 @@ export const AdminCalendar: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const { user } = useAuth();
+  const isCoordinatorAdmin = user?.role === UserRole.COORDINATOR_ADMIN;
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useAllEvents(page, 12);
   const createEventMutation = useCreateEvent();
@@ -79,6 +80,10 @@ export const AdminCalendar: React.FC = () => {
   };
 
   const handleDeleteEvent = async (eventId: string) => {
+    if (!isCoordinatorAdmin) {
+      setMessage({ type: 'error', text: 'Solo un coordinador administrador puede eliminar eventos.' });
+      return;
+    }
     const accepted = globalThis.confirm('Esta acción eliminará el evento del calendario. ¿Deseas continuar?');
     if (!accepted) return;
 
@@ -194,17 +199,21 @@ export const AdminCalendar: React.FC = () => {
                     >
                       Editar
                     </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      isLoading={isDeleting}
-                      onClick={() => {
-                        void handleDeleteEvent(eventItem.id);
-                      }}
-                    >
-                      Eliminar
-                    </Button>
+                    {isCoordinatorAdmin ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-700 hover:bg-red-50"
+                        isLoading={isDeleting}
+                        onClick={() => {
+                          void handleDeleteEvent(eventItem.id);
+                        }}
+                        aria-label={`Eliminar evento ${eventItem.title}`}
+                      >
+                        Eliminar
+                      </Button>
+                    ) : null}
                   </div>
                 </td>
               </tr>
