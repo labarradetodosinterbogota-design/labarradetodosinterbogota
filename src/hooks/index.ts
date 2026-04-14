@@ -15,6 +15,16 @@ export {
   useAdminSetMemberPassword,
   useAdminDeleteMember,
 } from './useMemberAdmin';
+export { useAdminDashboardStats } from './useAdminDashboardStats';
+export {
+  useHomepageInstagramEmbeds,
+  useHomepageInstagramProfile,
+  useSaveInstagramProfileUrl,
+  useCreateInstagramEmbed,
+  useUpdateInstagramEmbed,
+  useDeleteInstagramEmbed,
+  useMoveInstagramEmbed,
+} from './useHomepageInstagramEmbeds';
 export { useSucceededContributions, useFinanceExpenses, useCreateFinanceExpense } from './useFinanceTransparency';
 export { useForumPosts, useForumComments, useCreateForumPost, useCreateForumComment } from './useForum';
 export { useLiveChat } from './useLiveChat';

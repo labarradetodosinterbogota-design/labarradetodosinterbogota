@@ -52,6 +52,26 @@ export async function handleAggregateStats(req: VercelRequest, res: VercelRespon
     return;
   }
 
+  const { count: pendingMemberCount, error: pErr } = await supabase
+    .from('users')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending');
+
+  if (pErr) {
+    json(res, 500, { error: 'pending_members_query_failed', message: pErr.message });
+    return;
+  }
+
+  const { count: activeMemberCount, error: aErr } = await supabase
+    .from('users')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active');
+
+  if (aErr) {
+    json(res, 500, { error: 'active_members_query_failed', message: aErr.message });
+    return;
+  }
+
   json(res, 200, {
     generatedAt: new Date().toISOString(),
     contributions: {
@@ -60,6 +80,8 @@ export async function handleAggregateStats(req: VercelRequest, res: VercelRespon
     },
     members: {
       count: memberCount ?? 0,
+      pendingCount: pendingMemberCount ?? 0,
+      activeCount: activeMemberCount ?? 0,
     },
   });
 }

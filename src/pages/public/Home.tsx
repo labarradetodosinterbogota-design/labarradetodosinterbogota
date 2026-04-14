@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../components/atoms';
 import { BAR_NAME_LEAD, BAR_NAME_TAIL, BAR_OFFICIAL_NAME } from '../../constants/brand';
 import { Heart, Users, Zap, Globe } from 'lucide-react';
-import { BarraGallerySection, DonationSection } from '../../components/molecules';
+import { BarraGallerySection, DonationSection, HomeInstagramEmbedsSection } from '../../components/molecules';
 
 export const Home: React.FC = () => {
   return (
@@ -31,6 +31,8 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <HomeInstagramEmbedsSection />
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg p-6 border border-dark-200 hover:shadow-lg transition-shadow">

@@ -11,3 +11,5 @@ export { GalleryAdminPanel } from './GalleryAdminPanel';
 export { PendingMembersPanel } from './PendingMembersPanel';
 export { MemberAdminManageModal } from './MemberAdminManageModal';
 export { DonationSection } from './DonationSection';
+export { HomeInstagramEmbedsSection } from './HomeInstagramEmbedsSection';
+export { HomeInstagramEmbedsAdminPanel } from './HomeInstagramEmbedsAdminPanel';

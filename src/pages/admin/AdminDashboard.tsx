@@ -1,11 +1,48 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, FileText, Vote, Music, Package, Mail, CalendarDays } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Users,
+  FileText,
+  Vote,
+  Music,
+  Package,
+  Mail,
+  CalendarDays,
+  UserCheck,
+  UserPlus,
+  Wallet,
+  BadgeCheck,
+} from 'lucide-react';
 import { Button, Input, TextArea, Alert, Spinner } from '../../components/atoms';
-import { GalleryAdminPanel, PendingMembersPanel } from '../../components/molecules';
+import { GalleryAdminPanel, PendingMembersPanel, HomeInstagramEmbedsAdminPanel } from '../../components/molecules';
+import { useAdminDashboardStats } from '../../hooks';
 import { supabase } from '../../services/supabaseClient';
+import { formatCopFromCents } from '../../services/adminDashboardStatsClient';
+
+function AdminStatTile({
+  icon: Icon,
+  label,
+  value,
+  hint,
+}: Readonly<{
+  icon: LucideIcon;
+  label: string;
+  value: string | number;
+  hint?: string;
+}>) {
+  return (
+    <div className="rounded-lg border border-dark-200 bg-white p-4 shadow-sm">
+      <Icon className="h-8 w-8 text-primary-400 mb-2" aria-hidden />
+      <p className="text-xs font-semibold uppercase tracking-wide text-dark-500">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-dark-900 tabular-nums">{value}</p>
+      {hint ? <p className="mt-1 text-xs text-dark-500">{hint}</p> : null}
+    </div>
+  );
+}
 
 export const AdminDashboard: React.FC = () => {
+  const statsQuery = useAdminDashboardStats();
   const [recipientsRaw, setRecipientsRaw] = useState('');
   const [subject, setSubject] = useState('');
   const [htmlBody, setHtmlBody] = useState('');
@@ -145,10 +182,7 @@ export const AdminDashboard: React.FC = () => {
           <Mail className="w-6 h-6 text-primary-400" />
           <h3 className="font-semibold text-dark-900">Correo publicitario (SMTP)</h3>
         </div>
-        <p className="text-sm text-dark-600">
-          Solo coordinadores. Configura Gmail con contraseña de aplicación en el servidor (variables SMTP_*).
-          Máximo 80 destinatarios por envío.
-        </p>
+        <p className="text-sm text-dark-600">Solo coordinadores.</p>
         {mailMsg && <Alert type={mailMsg.type} message={mailMsg.text} />}
         <TextArea
           label="Destinatarios (separados por coma o salto de línea)"
@@ -181,9 +215,73 @@ export const AdminDashboard: React.FC = () => {
         </Button>
       </div>
 
-      <div className="bg-primary-50 rounded-lg border border-primary-200 p-6">
-        <h3 className="font-semibold text-dark-900 mb-2">Resumen</h3>
-        <p className="text-dark-600 text-sm">Estadísticas del panel próximamente.</p>
+      <HomeInstagramEmbedsAdminPanel />
+
+      <div className="bg-white rounded-lg border border-dark-200 p-6 space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold text-dark-900">Resumen</h3>
+          <p className="text-sm text-dark-600 mt-1">
+            Indicadores consolidados del sistema. Los datos se actualizan al cargar la página (caché breve de un
+            minuto).
+          </p>
+          {statsQuery.data?.generatedAt && (
+            <p className="text-xs text-dark-500 mt-1">
+              Última lectura: {new Date(statsQuery.data.generatedAt).toLocaleString('es-CO')}
+            </p>
+          )}
+        </div>
+
+        {statsQuery.isLoading && (
+          <div className="flex justify-center py-10">
+            <Spinner size="lg" />
+          </div>
+        )}
+
+        {statsQuery.isError && (
+          <Alert
+            type="error"
+            message={
+              statsQuery.error instanceof Error
+                ? statsQuery.error.message
+                : 'No se pudieron cargar las estadísticas.'
+            }
+          />
+        )}
+
+        {statsQuery.data && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+            <AdminStatTile
+              icon={Users}
+              label="Integrantes (total)"
+              value={statsQuery.data.members.count}
+              hint="Registros en el directorio"
+            />
+            <AdminStatTile
+              icon={UserCheck}
+              label="Cuentas activas"
+              value={statsQuery.data.members.activeCount}
+              hint="Pueden usar el área privada"
+            />
+            <AdminStatTile
+              icon={UserPlus}
+              label="Pendientes de aprobación"
+              value={statsQuery.data.members.pendingCount}
+              hint="Revisar en solicitudes arriba"
+            />
+            <AdminStatTile
+              icon={BadgeCheck}
+              label="Aportes exitosos"
+              value={statsQuery.data.contributions.succeededCount}
+              hint="Transparencia / donaciones confirmadas"
+            />
+            <AdminStatTile
+              icon={Wallet}
+              label="Total aportado (COP)"
+              value={formatCopFromCents(statsQuery.data.contributions.totalAmountCop)}
+              hint="Suma de aportes con estado exitoso"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -278,3 +278,13 @@ export interface PaginatedResponse<T> {
   limit: number;
   total_pages: number;
 }
+
+/** Fila en `homepage_instagram_embeds` (videos en la home pública). */
+export interface HomepageInstagramEmbedRow {
+  id: string;
+  sort_order: number;
+  title: string | null;
+  permalink: string;
+  created_at: string;
+  updated_at: string;
+}
