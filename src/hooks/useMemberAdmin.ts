@@ -11,6 +11,7 @@ export function useUpdateMemberAdminProfile() {
       void queryClient.invalidateQueries({ queryKey: ['members'] });
       void queryClient.invalidateQueries({ queryKey: ['members-search'] });
       void queryClient.invalidateQueries({ queryKey: ['pending-members'] });
+      void queryClient.invalidateQueries({ queryKey: ['recent-inactive-members'] });
     },
   });
 }
@@ -30,6 +31,7 @@ export function useAdminDeleteMember() {
       void queryClient.invalidateQueries({ queryKey: ['members'] });
       void queryClient.invalidateQueries({ queryKey: ['members-search'] });
       void queryClient.invalidateQueries({ queryKey: ['pending-members'] });
+      void queryClient.invalidateQueries({ queryKey: ['recent-inactive-members'] });
     },
   });
 }

@@ -4,7 +4,12 @@ export { useUpcomingEvents, useAllEvents, useEvent, useMarkAttendance, useCreate
 export { useActiveVoting, useAllVoting, usePoll, useUserVote, useVote, useCreatePoll } from './useVoting';
 export { usePublicDocuments, useAllDocuments, useDocumentsByCategory, useCreateDocument, useUploadDocument } from './useDocuments';
 export { useBarraGallery, useGalleryUpload, useGalleryDelete } from './useBarraGallery';
-export { usePendingMembers, useApproveMember, useRejectMember } from './usePendingMembers';
+export {
+  usePendingMembers,
+  useApproveMember,
+  useRejectMember,
+  useRecentInactiveMembers,
+} from './usePendingMembers';
 export {
   useUpdateMemberAdminProfile,
   useAdminSetMemberPassword,

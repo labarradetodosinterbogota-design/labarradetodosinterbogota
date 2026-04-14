@@ -9,12 +9,20 @@ export const usePendingMembers = () => {
   });
 };
 
+export const useRecentInactiveMembers = () => {
+  return useQuery<User[]>({
+    queryKey: ['recent-inactive-members'],
+    queryFn: () => memberAdminService.listRecentInactiveMembers(25),
+  });
+};
+
 export const useApproveMember = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (userId: string) => memberAdminService.approveMember(userId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['pending-members'] });
+      void queryClient.invalidateQueries({ queryKey: ['recent-inactive-members'] });
     },
   });
 };
@@ -25,6 +33,7 @@ export const useRejectMember = () => {
     mutationFn: (userId: string) => memberAdminService.rejectMember(userId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['pending-members'] });
+      void queryClient.invalidateQueries({ queryKey: ['recent-inactive-members'] });
     },
   });
 };

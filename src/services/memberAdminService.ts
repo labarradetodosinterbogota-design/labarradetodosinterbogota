@@ -8,7 +8,39 @@ export type MemberAdminProfilePatch = {
   status?: UserStatus;
 };
 
+function escapeForIlikeExact(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
 export const memberAdminService = {
+  async findUserByEmail(email: string): Promise<User | null> {
+    const raw = email.trim();
+    if (!raw) return null;
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .ilike('email', escapeForIlikeExact(raw))
+      .maybeSingle();
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Hay más de un resultado para ese criterio; contacta soporte técnico.');
+      }
+      throw error;
+    }
+    return (data ?? null) as User | null;
+  },
+
+  async listRecentInactiveMembers(limit = 25): Promise<User[]> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('status', UserStatus.INACTIVE)
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []) as User[];
+  },
+
   async countCoordinatorAdmins(): Promise<number> {
     const { count, error } = await supabase
       .from('users')
