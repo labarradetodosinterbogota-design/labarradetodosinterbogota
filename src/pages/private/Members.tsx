@@ -58,26 +58,30 @@ export const Members: React.FC = () => {
         </div>
 
         {data.total_pages > 1 && (
-          <div className="flex justify-center gap-2 mt-8">
-            <button
-              type="button"
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
-            >
-              Anterior
-            </button>
-            <span className="px-4 py-2">
-              Página {page} de {data.total_pages}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPage(Math.min(data.total_pages, page + 1))}
-              disabled={page === data.total_pages}
-              className="px-4 py-2 border border-dark-200 rounded-lg disabled:opacity-50"
-            >
-              Siguiente
-            </button>
+          <div className="flex justify-center mt-8">
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-lg border border-dark-200 bg-white px-4 py-3 shadow-sm">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={page === 1}
+                onClick={() => setPage(Math.max(1, page - 1))}
+              >
+                Anterior
+              </Button>
+              <span className="px-2 text-sm font-medium text-dark-900">
+                Página {page} de {data.total_pages}
+              </span>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={page === data.total_pages}
+                onClick={() => setPage(Math.min(data.total_pages, page + 1))}
+              >
+                Siguiente
+              </Button>
+            </div>
           </div>
         )}
       </>
