@@ -18,6 +18,14 @@
     { "source": "/api/sms/send", "destination": "/api/gateway?e=sms-send" },
     { "source": "/api/jobs/aggregate-stats", "destination": "/api/gateway?e=aggregate-stats" },
     { "source": "/api/email/send-broadcast", "destination": "/api/gateway?e=send-broadcast" },
+    {
+      "source": "/api/admin/members/set-password",
+      "destination": "/api/gateway?e=admin-member-set-password"
+    },
+    {
+      "source": "/api/admin/members/delete",
+      "destination": "/api/gateway?e=admin-member-delete"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

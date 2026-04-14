@@ -9,6 +9,8 @@ import { handleMercadoPagoWebhook } from '../server/handlers/mercadopagoWebhook.
 import { handleSendBroadcast } from '../server/handlers/sendBroadcast.js';
 import { handleSmsSend } from '../server/handlers/smsSend.js';
 import { handleStripeWebhook } from '../server/handlers/stripeWebhook.js';
+import { handleAdminMemberDelete } from '../server/handlers/adminMemberDelete.js';
+import { handleAdminMemberSetPassword } from '../server/handlers/adminMemberSetPassword.js';
 
 export const config = {
   api: {
@@ -67,6 +69,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     case 'bootstrap-pending-member':
       await handleBootstrapPendingMember(req, res, bodyBuf);
+      return;
+    case 'admin-member-set-password':
+      await handleAdminMemberSetPassword(req, res, bodyBuf);
+      return;
+    case 'admin-member-delete':
+      await handleAdminMemberDelete(req, res, bodyBuf);
       return;
     default:
       json(res, 404, { error: 'not_found', message: 'Unknown route' });

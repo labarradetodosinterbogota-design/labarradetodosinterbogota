@@ -9,4 +9,5 @@ export { Pagination } from './Pagination';
 export { BarraGallerySection } from './BarraGallerySection';
 export { GalleryAdminPanel } from './GalleryAdminPanel';
 export { PendingMembersPanel } from './PendingMembersPanel';
+export { MemberAdminManageModal } from './MemberAdminManageModal';
 export { DonationSection } from './DonationSection';

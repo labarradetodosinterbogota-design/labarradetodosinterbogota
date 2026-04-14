@@ -37,3 +37,10 @@ export async function getFanVerificationSignedUrl(
   if (error || !data?.signedUrl) return null;
   return data.signedUrl;
 }
+
+export async function removeFanVerificationObjects(paths: readonly string[]): Promise<void> {
+  const unique = [...new Set(paths.filter((p) => p.length > 0))];
+  if (unique.length === 0) return;
+  const { error } = await supabase.storage.from(FAN_VERIFICATION_BUCKET).remove([...unique]);
+  if (error) throw error;
+}

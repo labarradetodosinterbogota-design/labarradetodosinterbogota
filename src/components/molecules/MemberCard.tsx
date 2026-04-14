@@ -5,9 +5,11 @@ import { User, UserRole } from '../../types';
 interface MemberCardProps {
   member: User;
   onClick?: () => void;
+  /** Acciones adicionales (p. ej. botón Gestionar para coordinadores). */
+  actions?: React.ReactNode;
 }
 
-export const MemberCard: React.FC<MemberCardProps> = ({ member, onClick }) => {
+export const MemberCard: React.FC<MemberCardProps> = ({ member, onClick, actions }) => {
   const getRoleColor = (role: UserRole) => {
     return role === UserRole.COORDINATOR_ADMIN ? 'warning' : 'info';
   };
@@ -22,10 +24,15 @@ export const MemberCard: React.FC<MemberCardProps> = ({ member, onClick }) => {
     .join('')
     .toUpperCase();
 
+  const interactive = Boolean(onClick);
+  const cardClass = interactive
+    ? 'bg-white rounded-lg border border-dark-200 p-4 hover:shadow-lg transition-shadow cursor-pointer'
+    : 'bg-white rounded-lg border border-dark-200 p-4 hover:shadow-md transition-shadow';
+
   return (
     <div
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
       onClick={onClick}
       onKeyDown={
         onClick
@@ -37,7 +44,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({ member, onClick }) => {
             }
           : undefined
       }
-      className="bg-white rounded-lg border border-dark-200 p-4 hover:shadow-lg transition-shadow cursor-pointer"
+      className={cardClass}
     >
       <div className="flex items-start gap-3 mb-3">
         <Avatar src={member.photo_url} initials={initials} size="md" />
@@ -59,6 +66,11 @@ export const MemberCard: React.FC<MemberCardProps> = ({ member, onClick }) => {
             {new Date(member.join_date).toLocaleDateString('es-CO')}
           </span>
         </div>
+        {actions ? (
+          <div className="pt-2 border-t border-dark-100 mt-2" onClick={(e) => e.stopPropagation()}>
+            {actions}
+          </div>
+        ) : null}
       </div>
     </div>
   );

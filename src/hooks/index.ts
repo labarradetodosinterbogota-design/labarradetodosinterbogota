@@ -5,6 +5,11 @@ export { useActiveVoting, useAllVoting, usePoll, useUserVote, useVote, useCreate
 export { usePublicDocuments, useAllDocuments, useDocumentsByCategory, useCreateDocument, useUploadDocument } from './useDocuments';
 export { useBarraGallery, useGalleryUpload, useGalleryDelete } from './useBarraGallery';
 export { usePendingMembers, useApproveMember, useRejectMember } from './usePendingMembers';
+export {
+  useUpdateMemberAdminProfile,
+  useAdminSetMemberPassword,
+  useAdminDeleteMember,
+} from './useMemberAdmin';
 export { useSucceededContributions, useFinanceExpenses, useCreateFinanceExpense } from './useFinanceTransparency';
 export { useForumPosts, useForumComments, useCreateForumPost, useCreateForumComment } from './useForum';
 export { useLiveChat } from './useLiveChat';
