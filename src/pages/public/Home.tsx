@@ -85,7 +85,7 @@ export const Home: React.FC = () => {
       </section>
 
       <section className="space-y-6">
-        <header className="rounded-2xl border border-white/10 bg-dark-900/90 px-6 py-8 shadow-lg backdrop-blur-sm">
+        <header className="rounded-2xl border border-white/10 bg-dark-900 px-6 py-8 shadow-lg">
           <h2 className="text-3xl font-bold text-white">Valores fundamentales</h2>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

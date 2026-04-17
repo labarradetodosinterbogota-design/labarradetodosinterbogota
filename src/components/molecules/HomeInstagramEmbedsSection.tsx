@@ -1,10 +1,9 @@
 import React from 'react';
 import { Clapperboard } from 'lucide-react';
 import { Spinner } from '../atoms';
+import { LazyInstagramEmbed } from './LazyInstagramEmbed';
 import { useHomepageInstagramEmbeds, useHomepageInstagramProfile } from '../../hooks/useHomepageInstagramEmbeds';
 import { buildInstagramEmbedSrc } from '../../utils/instagramEmbedUrl';
-
-const IFRAME_HEIGHT_PX = 620;
 
 type ResolvedPublicEmbed = {
   id: string;
@@ -87,15 +86,9 @@ export const HomeInstagramEmbedsSection: React.FC = () => {
               </p>
             ) : null}
             <div className="bg-white">
-              <iframe
+              <LazyInstagramEmbed
                 src={item.src}
                 title={item.title ?? 'Publicación de Instagram de la barra'}
-                className="block w-full border-0"
-                height={IFRAME_HEIGHT_PX}
-                allow="encrypted-media; autoplay; clipboard-write; fullscreen"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
               />
             </div>
           </div>

@@ -70,7 +70,7 @@ export const BarraGallerySection: React.FC = () => {
 
   return (
     <section className="space-y-6" aria-labelledby="galeria-fotos-heading">
-      <header className="rounded-2xl border border-white/10 bg-dark-900/90 px-6 py-8 shadow-lg backdrop-blur-sm">
+      <header className="rounded-2xl border border-white/10 bg-dark-900 px-6 py-8 shadow-lg">
         <h2 id="galeria-fotos-heading" className="text-3xl font-bold text-white">
           Galería de fotos
         </h2>
@@ -86,7 +86,7 @@ export const BarraGallerySection: React.FC = () => {
       {error && <Alert type="error" message="No se pudo cargar la galería. Intenta más tarde." />}
 
       {!isLoading && !error && (!data || data.length === 0) && (
-        <div className="rounded-xl border border-dark-200 bg-white/95 px-6 py-12 text-center shadow-sm backdrop-blur-sm">
+        <div className="rounded-xl border border-dark-200 bg-white px-6 py-12 text-center shadow-sm">
           <p className="text-lg text-dark-900">
             Pronto compartiremos fotos de la barra. Vuelve a visitarnos.
           </p>
@@ -99,7 +99,10 @@ export const BarraGallerySection: React.FC = () => {
             const url = galleryService.getPublicUrl(item.storage_path);
             const label = item.caption?.trim() || 'Foto de la barra popular';
             return (
-              <article key={item.id} className="space-y-2">
+              <article
+                key={item.id}
+                className="space-y-2 [contain:layout_paint] [content-visibility:auto] [contain-intrinsic-size:240px_280px]"
+              >
                 <button
                   type="button"
                   onClick={() => {
@@ -114,7 +117,8 @@ export const BarraGallerySection: React.FC = () => {
                     alt={label}
                     loading="lazy"
                     decoding="async"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    fetchPriority="low"
+                    className="h-full w-full object-cover"
                   />
                 </button>
                 <p className="min-h-10 rounded-lg border border-dark-200 bg-white/95 px-2 py-1.5 text-left text-xs font-medium leading-5 text-dark-700 shadow-sm line-clamp-2">

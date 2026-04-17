@@ -14,3 +14,4 @@ export { DonationSection } from './DonationSection';
 export { HomeInstagramEmbedsSection } from './HomeInstagramEmbedsSection';
 export { HomeInstagramEmbedsAdminPanel } from './HomeInstagramEmbedsAdminPanel';
 export { BarOfficialSocialLinks } from './BarOfficialSocialLinks';
+export { LazyInstagramEmbed } from './LazyInstagramEmbed';
