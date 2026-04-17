@@ -20,3 +20,10 @@ export const BAR_LEGAL_NAME = BAR_OFFICIAL_NAME;
 
 /** Correo oficial de contacto (público). */
 export const BAR_CONTACT_EMAIL = 'legionbacatainterbogota@gmail.com';
+
+/** Perfil oficial de Instagram (enlace público). */
+export const BAR_OFFICIAL_INSTAGRAM_URL = 'https://www.instagram.com/legionbacatainterbogota/';
+
+/** Página oficial en Facebook (enlace público). */
+export const BAR_OFFICIAL_FACEBOOK_URL =
+  'https://www.facebook.com/people/Barra-popular-Legi%C3%B3n-Bacat%C3%A1/61571980256825/?rdid=T4FwhkfophvmcCSm&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1J9UZWW1qL%2F';

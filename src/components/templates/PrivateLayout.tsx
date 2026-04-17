@@ -13,6 +13,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { Button, Avatar, BrandFlagBanner, BrandMark } from '../atoms';
+import { BarOfficialSocialLinks } from '../molecules';
 import { useAuth } from '../../context/AuthContext';
 import { BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
 
@@ -247,8 +248,11 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ children }) => {
       </main>
 
       <footer className="bg-white/95 backdrop-blur-sm border-t border-dark-200/80 mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-dark-500">
-          <p>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex justify-center mb-6">
+            <BarOfficialSocialLinks variant="onLight" />
+          </div>
+          <p className="text-center text-sm text-dark-500">
             &copy; {new Date().getFullYear()} {BAR_LEGAL_NAME}. Todos los derechos reservados.
           </p>
         </div>

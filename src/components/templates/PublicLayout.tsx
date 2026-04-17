@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button, BrandFlagBanner, BrandMark } from '../atoms';
+import { BarOfficialSocialLinks } from '../molecules';
 import { BAR_CONTACT_EMAIL, BAR_LEGAL_NAME, BAR_OFFICIAL_NAME } from '../../constants/brand';
 
 interface PublicLayoutProps {
@@ -112,7 +113,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
 
       <footer className="bg-dark-900 text-white mt-12">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             <div>
               <h3 className="font-bold text-primary-400 mb-4">{BAR_OFFICIAL_NAME}</h3>
               <p className="text-dark-300 text-sm">
@@ -157,6 +158,10 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
                 </li>
                 <li>+57 1 XXXX XXXX</li>
               </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Redes sociales</h3>
+              <BarOfficialSocialLinks variant="onDark" />
             </div>
           </div>
           <div className="border-t border-dark-700 pt-8 text-center text-sm text-dark-400">
