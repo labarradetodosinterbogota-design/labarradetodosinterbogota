@@ -9,7 +9,12 @@ import {
   uploadFanVerificationPhoto,
 } from '../../services/fanVerificationStorage';
 import { memberAdminService } from '../../services/memberAdminService';
-import { useAdminDeleteMember, useAdminSetMemberPassword, useUpdateMemberAdminProfile } from '../../hooks/useMemberAdmin';
+import {
+  useAdminDeleteMember,
+  useAdminSetMemberPassword,
+  useAdminUpdateMemberEmail,
+  useUpdateMemberAdminProfile,
+} from '../../hooks/useMemberAdmin';
 import type { User } from '../../types';
 import { UserRole, UserStatus } from '../../types';
 
@@ -83,6 +88,7 @@ export const MemberAdminManageModal: React.FC<MemberAdminManageModalProps> = ({
 }) => {
   const verificationInputId = useId();
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<UserRole>(UserRole.BASIC_USER);
   const [status, setStatus] = useState<UserStatus>(UserStatus.ACTIVE);
@@ -97,12 +103,14 @@ export const MemberAdminManageModal: React.FC<MemberAdminManageModalProps> = ({
 
   const queryClient = useQueryClient();
   const updateProfile = useUpdateMemberAdminProfile();
+  const updateEmailMutation = useAdminUpdateMemberEmail();
   const setPasswordMutation = useAdminSetMemberPassword();
   const deleteMutation = useAdminDeleteMember();
 
   useEffect(() => {
     if (!member || !isOpen) return;
     setFullName(member.full_name);
+    setEmail(member.email);
     setPhone(member.phone ?? '');
     setRole(member.role);
     setStatus(member.status);
@@ -146,6 +154,19 @@ export const MemberAdminManageModal: React.FC<MemberAdminManageModalProps> = ({
       ) {
         setProfileError('Debe existir al menos un coordinador.');
         return;
+      }
+      const trimmedEmail = email.trim();
+      if (trimmedEmail.length < 3) {
+        setProfileError('Indica un correo válido.');
+        return;
+      }
+      const emailLower = trimmedEmail.toLowerCase();
+      const memberEmailLower = member.email.trim().toLowerCase();
+      if (emailLower !== memberEmailLower) {
+        await updateEmailMutation.mutateAsync({
+          targetUserId: member.id,
+          newEmail: trimmedEmail,
+        });
       }
       await updateProfile.mutateAsync({
         userId: member.id,
@@ -233,8 +254,18 @@ export const MemberAdminManageModal: React.FC<MemberAdminManageModalProps> = ({
 
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-dark-800">Datos del perfil</h3>
-          <p className="text-xs text-dark-500 break-all">Correo (solo lectura): {member.email}</p>
           <p className="text-xs text-dark-500">Carné: {member.member_id}</p>
+          <Input
+            id="member-admin-email"
+            label="Correo electrónico"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <p className="text-xs text-dark-500">
+            Al cambiarlo se actualiza el inicio de sesión en Supabase Auth y el perfil. Debe ser único en la barra.
+          </p>
           <Input label="Nombre completo" value={fullName} onChange={(e) => setFullName(e.target.value)} />
           <Input label="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} />
           <Select
@@ -260,7 +291,7 @@ export const MemberAdminManageModal: React.FC<MemberAdminManageModalProps> = ({
           <Button
             type="button"
             variant="primary"
-            isLoading={updateProfile.isPending}
+            isLoading={updateProfile.isPending || updateEmailMutation.isPending}
             onClick={() => void handleSaveProfile()}
           >
             Guardar cambios

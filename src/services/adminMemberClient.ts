@@ -34,6 +34,31 @@ export async function adminSetMemberPassword(targetUserId: string, newPassword: 
   }
 }
 
+export async function adminUpdateMemberEmail(targetUserId: string, newEmail: string): Promise<void> {
+  const token = await getAccessToken();
+  if (!token) {
+    throw new Error('Sesión no válida.');
+  }
+  const res = await fetch('/api/admin/members/update-email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ targetUserId, newEmail }),
+  });
+  const payload = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    const code = payload.error;
+    if (code === 'email_in_use') {
+      throw new Error(
+        typeof payload.message === 'string' ? payload.message : 'Ese correo ya está en uso.'
+      );
+    }
+    throw new Error(readErrorMessage(payload, 'No se pudo actualizar el correo.'));
+  }
+}
+
 export async function adminDeleteMember(targetUserId: string): Promise<void> {
   const token = await getAccessToken();
   if (!token) {

@@ -26,6 +26,10 @@
       "source": "/api/admin/members/delete",
       "destination": "/api/gateway?e=admin-member-delete"
     },
+    {
+      "source": "/api/admin/members/update-email",
+      "destination": "/api/gateway?e=admin-member-update-email"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

@@ -14,6 +14,7 @@ export {
   useUpdateMemberAdminProfile,
   useAdminSetMemberPassword,
   useAdminDeleteMember,
+  useAdminUpdateMemberEmail,
 } from './useMemberAdmin';
 export { useAdminDashboardStats } from './useAdminDashboardStats';
 export {
