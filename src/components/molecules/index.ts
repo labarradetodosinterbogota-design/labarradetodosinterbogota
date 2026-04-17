@@ -15,3 +15,5 @@ export { HomeInstagramEmbedsSection } from './HomeInstagramEmbedsSection';
 export { HomeInstagramEmbedsAdminPanel } from './HomeInstagramEmbedsAdminPanel';
 export { BarOfficialSocialLinks } from './BarOfficialSocialLinks';
 export { LazyInstagramEmbed } from './LazyInstagramEmbed';
+export { DonationThanksCard } from './DonationThanksCard';
+export { DashboardWelcomeBanner } from './DashboardWelcomeBanner';

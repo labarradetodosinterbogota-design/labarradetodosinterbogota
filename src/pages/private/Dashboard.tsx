@@ -2,13 +2,21 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Users, FileText, Vote, Calendar, MessageCircle, Zap, Banknote } from 'lucide-react';
+import { DashboardWelcomeBanner } from '../../components/molecules';
+import { trackAppEvent } from '../../utils/analytics';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'coordinator_admin';
 
+  React.useEffect(() => {
+    trackAppEvent('dashboard_view', { area: 'private' });
+  }, []);
+
   return (
     <div className="space-y-8">
+      <DashboardWelcomeBanner />
+
       <div className="bg-white rounded-lg border border-dark-200 p-6">
         <h1 className="text-4xl font-bold text-dark-900 mb-2">Hola, {user?.full_name}.</h1>
         <p className="text-dark-600">Carné de integrante: {user?.member_id}</p>

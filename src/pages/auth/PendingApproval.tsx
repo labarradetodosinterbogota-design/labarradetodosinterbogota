@@ -10,6 +10,7 @@ import {
 } from '../../services/pendingVerificationDraft';
 import { supabase } from '../../services/supabaseClient';
 import { UserStatus } from '../../types';
+import { trackAppEventOnce } from '../../utils/analytics';
 
 export const PendingApproval: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,11 @@ export const PendingApproval: React.FC = () => {
       navigate('/dashboard', { replace: true });
     }
   }, [isLoading, user, canAccessPrivateArea, navigate]);
+
+  React.useEffect(() => {
+    if (!user || user.status !== UserStatus.PENDING) return;
+    trackAppEventOnce(`pending_account:${user.id}`, 'pending_account_view', { surface: 'cuenta_pendiente' });
+  }, [user]);
 
   const handleRefresh = async () => {
     setMsg(null);
@@ -200,11 +206,13 @@ export const PendingApproval: React.FC = () => {
         <div className="rounded-lg border border-dark-200 bg-white p-8">
           <h1 className="text-2xl font-bold text-dark-900 mb-2">Solicitud en revisión</h1>
           <p className="text-dark-600 mb-4">
-            Gracias por registrarte. Un coordinador verificará tu foto de hincha de Inter Bogotá y activará tu
-            cuenta. Recibirás acceso al área privada cuando el estado pase a <strong>activo</strong>.
+            Gracias por registrarte. Un coordinador revisará tu foto de hincha de Inter Bogotá y activará tu cuenta;
+            los tiempos dependen del equipo, pero suele ser en pocos días. Cuando el estado pase a{' '}
+            <strong>activo</strong>, podrás entrar al área privada (votaciones, calendario, finanzas).
           </p>
           <p className="text-sm text-dark-500 mb-6">
-            Mientras tanto puedes cerrar sesión o comprobar si ya fuiste aprobado.
+            Puedes usar &quot;Comprobar estado&quot; más tarde o cerrar sesión. Si ya subiste la foto, solo queda
+            esperar la revisión.
           </p>
 
           {!user.fan_verification_storage_path && (

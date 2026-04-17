@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, TextArea, Spinner, Select } from '../../components/atoms';
-import { DonationSection } from '../../components/molecules';
+import { DonationSection, DonationThanksCard } from '../../components/molecules';
 import { useAuth } from '../../context/AuthContext';
 import {
   useSucceededContributions,
@@ -15,6 +15,7 @@ import { formatCop } from '../../utils/formatCop';
 import { sanitizeGalleryFileName } from '../../utils/sanitizeGalleryFileName';
 import { BAR_OFFICIAL_NAME } from '../../constants/brand';
 import type { ContributionTransparency, FinanceExpense } from '../../types';
+import { trackAppEventOnce } from '../../utils/analytics';
 
 function ExpenseReceiptButton({ storagePath }: Readonly<{ storagePath: string }>) {
   const [busy, setBusy] = useState(false);
@@ -158,6 +159,7 @@ function ExpensesTableBody({
 
 export const Contribute: React.FC = () => {
   const [params] = useSearchParams();
+  const location = useLocation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const isAdmin = user?.role === 'coordinator_admin';
@@ -165,6 +167,31 @@ export const Contribute: React.FC = () => {
   const thanks = params.get('thanks') === '1';
   const canceled = params.get('canceled') === '1';
   const pending = params.get('pending') === '1';
+
+  React.useEffect(() => {
+    if (thanks) {
+      trackAppEventOnce(`donation_thanks:${location.pathname}${location.search}`, 'donation_return_thanks', {
+        surface: 'private_finanzas',
+        payment_flow: 'mercadopago',
+      });
+    }
+  }, [thanks, location.pathname, location.search]);
+
+  React.useEffect(() => {
+    if (pending) {
+      trackAppEventOnce(`donation_pending:${location.pathname}`, 'donation_return_pending', {
+        surface: 'private_finanzas',
+      });
+    }
+  }, [pending, location.pathname]);
+
+  React.useEffect(() => {
+    if (canceled) {
+      trackAppEventOnce(`donation_canceled:${location.pathname}`, 'donation_return_canceled', {
+        surface: 'private_finanzas',
+      });
+    }
+  }, [canceled, location.pathname]);
 
   const contributionsQ = useSucceededContributions();
   const expensesQ = useFinanceExpenses();
@@ -258,9 +285,7 @@ export const Contribute: React.FC = () => {
         </p>
       </div>
 
-      {thanks && (
-        <Alert type="success" message="Gracias. Si el pago fue aprobado, el aporte aparecerá en la tabla inferior." />
-      )}
+      {thanks && <DonationThanksCard variant="private_finances" />}
       {pending && <Alert type="warning" message="Pago pendiente. Mercado Pago notificará cuando se confirme." />}
       {canceled && <Alert type="warning" message="Pago cancelado. Puedes intentar de nuevo abajo." />}
 

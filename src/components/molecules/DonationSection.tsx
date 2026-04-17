@@ -4,6 +4,7 @@ import { Heart } from 'lucide-react';
 import { Button, Input, Alert, Spinner } from '../atoms';
 import { startMercadoPagoDonation } from '../../services/donationsClient';
 import { BAR_OFFICIAL_NAME } from '../../constants/brand';
+import { trackAppEvent } from '../../utils/analytics';
 
 const PRESETS = [20_000, 50_000, 100_000] as const;
 
@@ -57,6 +58,10 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
     setError(null);
     setLoading(true);
     try {
+      trackAppEvent('donation_checkout_start', {
+        amount_cop: cop,
+        return_path: returnPath,
+      });
       const url = await startMercadoPagoDonation({
         amountCop: cop,
         successUrl: `${baseUrl}?thanks=1`,
@@ -91,9 +96,9 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
         <div>
           <h2 className={`font-bold text-dark-900 mb-2 ${titleClass}`}>Donaciones</h2>
           <p className={descriptionClass}>
-            Apoya a {BAR_OFFICIAL_NAME} con un aporte voluntario. Pago seguro con Mercado Pago (tarjeta, PSE,
-            efectivo y otros medios disponibles según tu país). Los aportes exitosos se reflejan en el módulo de
-            finanzas del área privada para transparencia.
+            Tu aporte ayuda a transporte, materiales y acciones de {BAR_OFFICIAL_NAME}. Es voluntario y seguro con
+            Mercado Pago (tarjeta, PSE, efectivo y otros medios según tu país). Los pagos acreditados se reflejan en
+            Finanzas del área privada para que todos vean el uso del dinero.
           </p>
         </div>
       </div>

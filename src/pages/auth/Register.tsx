@@ -9,6 +9,7 @@ import {
   clearPendingVerificationDraft,
   savePendingVerificationDraft,
 } from '../../services/pendingVerificationDraft';
+import { trackAppEvent } from '../../utils/analytics';
 
 interface RegisterFormData {
   fullName: string;
@@ -76,6 +77,7 @@ export const Register: React.FC = () => {
       } catch {
         // No bloquea navegación si no se puede limpiar el borrador local.
       }
+      trackAppEvent('signup_request_submitted', { surface: 'register' });
       navigate('/cuenta-pendiente', { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'No se pudo completar el registro.';
@@ -102,8 +104,9 @@ export const Register: React.FC = () => {
           <p className="text-dark-600 mb-6">Crea tu cuenta de integrante</p>
 
           <p className="text-sm text-dark-500 mb-4 rounded-lg bg-primary-50 border border-primary-100 px-3 py-2">
-            Un coordinador revisará tu solicitud. Necesitamos una foto tuya con camiseta de Inter Bogotá, en el
-            estadio, carnet u otro elemento que acredite tu hinchada.
+            <strong className="font-semibold text-dark-800">Qué sigue:</strong> un coordinador revisará tu foto y tus
+            datos. Cuando te aprueben, podrás entrar al área privada (votaciones, eventos, finanzas). Necesitamos una
+            foto tuya con camiseta de Inter Bogotá, en el estadio, carnet u otro elemento que acredite tu hinchada.
           </p>
 
           {feedback && <Alert type={feedback.type} message={feedback.message} className="mb-6" />}
