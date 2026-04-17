@@ -96,7 +96,8 @@ export const BarraGallerySection: React.FC = () => {
       {!isLoading && galleryItems.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {visibleItems.map((item) => {
-            const url = galleryService.getPublicUrl(item.storage_path);
+            const thumbUrl = galleryService.getGridDisplayUrl(item.storage_path);
+            const fullUrl = galleryService.getPublicUrl(item.storage_path);
             const label = item.caption?.trim() || 'Foto de la barra popular';
             return (
               <article
@@ -106,14 +107,14 @@ export const BarraGallerySection: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveUrl(url);
+                    setActiveUrl(fullUrl);
                     setActiveAlt(label);
                   }}
                   aria-label={`Ampliar: ${label}`}
                   className="group relative aspect-square w-full overflow-hidden rounded-xl border border-dark-200 bg-dark-900 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
                 >
                   <img
-                    src={url}
+                    src={thumbUrl}
                     alt={label}
                     loading="lazy"
                     decoding="async"

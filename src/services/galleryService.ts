@@ -6,9 +6,53 @@ const BUCKET_ID = 'barra-gallery';
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
+/** Miniatura para grillas (~320px lógicos × 2 retina). Requiere Storage Image Transformations (Supabase Pro). */
+const GRID_THUMB_WIDTH = 640;
+const GRID_THUMB_HEIGHT = 640;
+
+function isGifStoragePath(storagePath: string): boolean {
+  const fileName = storagePath.split('/').pop() ?? '';
+  return /\.gif$/i.test(fileName);
+}
+
+/**
+ * Desactiva transformaciones con `VITE_GALLERY_IMAGE_TRANSFORMS=false` (p. ej. plan sin Image Transformations).
+ */
+function galleryImageTransformsEnabled(): boolean {
+  return import.meta.env.VITE_GALLERY_IMAGE_TRANSFORMS !== 'false';
+}
+
+function resolveGalleryPublicUrl(storagePath: string): string {
+  const { data } = supabase.storage.from(BUCKET_ID).getPublicUrl(storagePath);
+  return data.publicUrl;
+}
+
 export const galleryService = {
+  /**
+   * URL del archivo original (p. ej. vista ampliada / lightbox).
+   */
   getPublicUrl(storagePath: string): string {
-    const { data } = supabase.storage.from(BUCKET_ID).getPublicUrl(storagePath);
+    return resolveGalleryPublicUrl(storagePath);
+  },
+
+  /**
+   * URL optimizada para miniaturas en grilla (resize + calidad vía CDN de Supabase).
+   * Los GIF se sirven sin transformar para conservar animación.
+   * @see https://supabase.com/docs/guides/storage/serving/image-transformations
+   */
+  getGridDisplayUrl(storagePath: string): string {
+    if (!galleryImageTransformsEnabled() || isGifStoragePath(storagePath)) {
+      return resolveGalleryPublicUrl(storagePath);
+    }
+
+    const { data } = supabase.storage.from(BUCKET_ID).getPublicUrl(storagePath, {
+      transform: {
+        width: GRID_THUMB_WIDTH,
+        height: GRID_THUMB_HEIGHT,
+        resize: 'cover',
+        quality: 78,
+      },
+    });
     return data.publicUrl;
   },
 

@@ -10,7 +10,7 @@ const INITIAL_VISIBLE_ITEMS = 12;
 const VISIBLE_ITEMS_STEP = 12;
 
 type GalleryGridItemData = BarraGalleryItem & {
-  publicUrl: string;
+  previewUrl: string;
 };
 
 interface GalleryGridItemProps {
@@ -29,7 +29,7 @@ const GalleryGridItem: React.FC<GalleryGridItemProps> = React.memo(({ item, busy
       }}
     >
       <img
-        src={item.publicUrl}
+        src={item.previewUrl}
         alt={item.caption?.trim() || 'Galería'}
         className="aspect-square rounded-lg border border-dark-200 object-cover"
         loading="lazy"
@@ -70,7 +70,7 @@ export const GalleryAdminPanel: React.FC = () => {
     if (!items) return [];
     return items.map((item) => ({
       ...item,
-      publicUrl: galleryService.getPublicUrl(item.storage_path),
+      previewUrl: galleryService.getGridDisplayUrl(item.storage_path),
     }));
   }, [items]);
   const visibleItems = useMemo(
