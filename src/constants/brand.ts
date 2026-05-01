@@ -1,11 +1,11 @@
-/** Primer bloque del nombre (acento visual en el hero del inicio). */
-export const BAR_NAME_LEAD = 'Barra Popular';
+/** Primera parte del nombre (acento visual en el hero del inicio). */
+export const BAR_HERO_HEAD = 'Legión Bacatá';
 
-/** Resto del nombre oficial. */
-export const BAR_NAME_TAIL = 'Legión Bacatá Inter Bogotá';
+/** Segunda parte del nombre (hero del inicio). */
+export const BAR_HERO_SUB = 'Inter Bogotá';
 
 /** Nombre completo en textos de interfaz y comunicación. */
-export const BAR_OFFICIAL_NAME = `${BAR_NAME_LEAD} ${BAR_NAME_TAIL}`;
+export const BAR_OFFICIAL_NAME = `${BAR_HERO_HEAD} ${BAR_HERO_SUB}`;
 
 /** Ruta pública del escudo oficial de la barra. */
 export const BAR_SHIELD_ASSET_PATH = '/escudo-barra.webp';
@@ -15,7 +15,7 @@ export const BAR_SHIELD_FALLBACK_ASSET_PATH = '/escudo-barra.png';
 export const BAR_FLAG_BANNER_ASSET_PATH = '/bandera-barra.webp';
 export const BAR_FLAG_BANNER_FALLBACK_ASSET_PATH = '/bandera-barra.png';
 
-/** Denominación en pies de página (evita duplicar “Barra Popular” al final). */
+/** Denominación en pies de página. */
 export const BAR_LEGAL_NAME = BAR_OFFICIAL_NAME;
 
 /** Correo oficial de contacto (público). */

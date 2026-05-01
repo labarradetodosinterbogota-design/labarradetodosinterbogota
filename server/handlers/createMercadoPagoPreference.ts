@@ -90,7 +90,7 @@ export async function handleCreateMercadoPagoPreference(
       accessToken: MERCADOPAGO_ACCESS_TOKEN,
       externalReference: contributionId,
       amountCop,
-      title: 'Donación — Barra Popular Legión Bacatá Inter Bogotá',
+      title: 'Donación — Legión Bacatá Inter Bogotá',
       notificationUrl,
       successUrl,
       failureUrl,

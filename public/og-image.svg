@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-  <title id="title">Barra Popular Legion Bacata Inter Bogota</title>
+  <title id="title">Legión Bacatá Inter Bogotá</title>
   <desc id="desc">Imagen Open Graph oficial de la comunidad de hinchas</desc>
   <defs>
     <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
@@ -55,7 +55,7 @@
     font-weight="800"
     letter-spacing="0.2"
   >
-    Barra Popular Legion Bacata
+    Legión Bacatá
   </text>
   <text
     x="460"
@@ -65,7 +65,7 @@
     font-family="Inter, Segoe UI, Arial, sans-serif"
     font-weight="600"
   >
-    Inter Bogota
+    Inter Bogotá
   </text>
   <text
     x="460"

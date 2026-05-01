@@ -244,7 +244,7 @@ export const MembershipCard: React.FC = () => {
       doc.text('Comprobante de membresía', 22, 129);
       doc.setFontSize(10);
       doc.text(
-        'Este documento acredita tu membresía dentro de Barra Popular Legión Bacatá Inter Bogotá.',
+        `Este documento acredita tu membresía dentro de ${BAR_OFFICIAL_NAME}.`,
         22,
         139,
         { maxWidth: 110 }

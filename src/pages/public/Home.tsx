@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/atoms';
-import { BAR_NAME_LEAD, BAR_NAME_TAIL, BAR_OFFICIAL_NAME } from '../../constants/brand';
+import { BAR_HERO_HEAD, BAR_HERO_SUB, BAR_OFFICIAL_NAME } from '../../constants/brand';
 import { Heart, Users, Zap, Globe } from 'lucide-react';
 import { BarraGallerySection, DonationSection, HomeInstagramEmbedsSection } from '../../components/molecules';
 
@@ -11,8 +11,8 @@ export const Home: React.FC = () => {
       <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-dark-900 via-dark-800 to-dark-900 px-6 py-20 text-white">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl font-bold mb-6">
-            <span className="text-primary-400">{BAR_NAME_LEAD}</span>
-            <span className="text-white"> {BAR_NAME_TAIL}</span>
+            <span className="text-primary-400">{BAR_HERO_HEAD}</span>
+            <span className="text-white"> {BAR_HERO_SUB}</span>
           </h1>
           <p className="text-xl text-dark-200 mb-8">
             Hinchada unida • Sin violencia • Decidimos todo en democracia

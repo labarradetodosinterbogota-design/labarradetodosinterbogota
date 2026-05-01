@@ -74,7 +74,7 @@ export const BarraGallerySection: React.FC = () => {
         <h2 id="galeria-fotos-heading" className="text-3xl font-bold text-white">
           Galería de fotos
         </h2>
-        <p className="mt-2 text-lg text-dark-200">Momentos de nuestra barra popular</p>
+        <p className="mt-2 text-lg text-dark-200">Momentos de nuestra hinchada</p>
       </header>
 
       {isLoading && (
@@ -98,7 +98,7 @@ export const BarraGallerySection: React.FC = () => {
           {visibleItems.map((item) => {
             const thumbUrl = galleryService.getGridDisplayUrl(item.storage_path);
             const fullUrl = galleryService.getPublicUrl(item.storage_path);
-            const label = item.caption?.trim() || 'Foto de la barra popular';
+            const label = item.caption?.trim() || 'Foto de la hinchada';
             return (
               <article
                 key={item.id}
